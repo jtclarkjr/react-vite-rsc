@@ -1,5 +1,8 @@
 # Vite + RSC
 
+This is a minimal react boilerplate that doesn't use a framework. Just react 19, vite (vite+), and
+rsc (server components)
+
 This example shows how to set up a React application with
 [Server Component](https://react.dev/reference/rsc/server-components) features on Vite using
 [`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc).
