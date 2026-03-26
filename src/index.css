@@ -1,0 +1,53 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans: 'Avenir Next', Avenir, 'Segoe UI', ui-sans-serif, system-ui, sans-serif;
+  --color-background: #f7f9fc;
+  --color-foreground: #152033;
+  --color-card: rgba(255, 255, 255, 0.88);
+  --color-card-foreground: #152033;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #152033;
+  --color-primary: #245cff;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #edf2ff;
+  --color-secondary-foreground: #152033;
+  --color-muted: #eef2f8;
+  --color-muted-foreground: #52607a;
+  --color-accent: #e8efff;
+  --color-accent-foreground: #152033;
+  --color-border: #d8e0ee;
+  --color-input: #d8e0ee;
+  --color-ring: rgba(36, 92, 255, 0.35);
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    color-scheme: light;
+  }
+
+  body {
+    @apply min-w-80 bg-background font-sans text-foreground antialiased;
+    background:
+      radial-gradient(circle at top, rgb(87 157 255 / 12%), transparent 30%),
+      linear-gradient(180deg, #f7f9fc 0%, #ffffff 40%, #f5f7fb 100%);
+  }
+
+  a {
+    @apply text-inherit no-underline;
+  }
+
+  button,
+  input {
+    font: inherit;
+  }
+
+  code {
+    @apply rounded-md bg-primary/8 px-1.5 py-0.5 text-[0.95em];
+  }
+}

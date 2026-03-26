@@ -1,0 +1,58 @@
+{
+  "name": "react-vite-rsc",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vp dev",
+    "build": "vp build",
+    "preview": "vp preview",
+    "typecheck": "vp exec tsgo --noEmit",
+    "storybook": "vp exec storybook dev -p 6006",
+    "storybook:ci": "vp exec storybook dev -p 6006 --ci --no-open",
+    "build-storybook": "vp exec storybook build --output-dir /tmp/react-vite-rsc-storybook-static",
+    "test:storybook": "vp test run --config vitest.storybook.config.ts --project storybook",
+    "prepare": "vp config"
+  },
+  "dependencies": {
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.7.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@storybook/addon-docs": "^10.3.3",
+    "@storybook/addon-vitest": "^10.3.3",
+    "@storybook/react-vite": "^10.3.3",
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^25.5.0",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@typescript/native-preview": "7.0.0-dev.20260326.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@vitejs/plugin-rsc": "^0.5.21",
+    "@vitest/browser-playwright": "^4.1.2",
+    "playwright": "^1.58.2",
+    "rsc-html-stream": "^0.0.7",
+    "storybook": "^10.3.3",
+    "tailwindcss": "^4.2.2",
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.14",
+    "vite-plus": "^0.1.14"
+  },
+  "packageManager": "pnpm@10.33.0",
+  "pnpm": {
+    "peerDependencyRules": {
+      "allowedVersions": {
+        "vite": "*"
+      }
+    },
+    "overrides": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@latest",
+      "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+    }
+  }
+}
