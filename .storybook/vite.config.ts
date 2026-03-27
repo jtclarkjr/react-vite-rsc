@@ -1,3 +1,13 @@
-import { defineConfig } from 'vite'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { defineConfig } from 'vite-plus'
 
-export default defineConfig({})
+const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(dirname, '../src')
+    }
+  }
+})

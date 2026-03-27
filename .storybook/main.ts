@@ -1,6 +1,6 @@
 import tailwindcss from '@tailwindcss/vite'
 import type { StorybookConfig } from '@storybook/react-vite'
-import { mergeConfig } from 'vite'
+import { mergeConfig } from 'vite-plus'
 
 const reactDeps = ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-dev-runtime']
 
