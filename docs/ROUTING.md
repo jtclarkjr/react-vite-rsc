@@ -16,7 +16,7 @@ The key pieces are:
   - Builds the route table from the filesystem with `import.meta.glob()`
   - Matches static and dynamic segments
 - `src/root.tsx`
-  - Calls `resolveRoute(url)` and renders the matched page
+  - Renders a pre-resolved route match and request context
   - Falls back to the built-in 404 page when nothing matches
 - `src/framework/entry.rsc.tsx`
   - Handles incoming render requests and renders the app for both SSR and RSC responses
@@ -25,6 +25,9 @@ The key pieces are:
   - Re-fetches the RSC payload after navigation and refreshes
 - `src/framework/navigation/index.ts`
   - Exposes client hooks like `useRouter()`, `usePathname()`, and `useSearchParams()`
+- `src/framework/middleware.ts`
+  - Runs route middleware before actions and page renders
+  - Provides the shared redirect helper used by protected routes
 
 ## File-Based Route Conventions
 
@@ -55,6 +58,7 @@ Route modules export a default component. The router passes:
 
 ```ts
 type PageProps = {
+  context: Record<string, unknown>
   params: Record<string, string>
   url: URL
 }
@@ -74,6 +78,7 @@ Notes:
 
 - `params` contains decoded dynamic route params
 - `url` is the full request URL for the current render
+- `context` contains request-scoped values populated by route middleware
 - Page modules may be sync or async server components
 
 ### Static Route Example
@@ -102,16 +107,32 @@ export default function BlogPage(props: PageProps) {
 }
 ```
 
+## Route Middleware
+
+Route modules may also export `middleware?: RouteMiddleware[]`.
+
+Middleware is executed in `src/framework/entry.rsc.tsx`, not inside page components, so it can
+guard:
+
+- SSR document requests
+- client-side RSC navigations
+- hydrated server action fetches
+- progressive-enhancement form posts
+
+See [`./MIDDLEWARE.md`](./MIDDLEWARE.md) for the full middleware contract, redirect behavior, and
+examples.
+
 ## How Requests Flow
 
 ### Initial Page Load
 
 1. The browser requests a normal URL like `/about`
 2. `src/framework/entry.rsc.tsx` parses the request
-3. `src/root.tsx` calls `resolveRoute(url)`
-4. `src/router.tsx` matches the URL against `src/routes/**/page.tsx`
-5. The matched page is rendered as RSC, then wrapped into HTML for SSR
-6. The browser hydrates using `src/framework/entry.browser.tsx`
+3. `src/router.tsx` matches the URL against `src/routes/**/page.tsx`
+4. Route middleware runs in `src/framework/entry.rsc.tsx`
+5. `src/root.tsx` renders the matched page or the built-in 404
+6. The matched page is rendered as RSC, then wrapped into HTML for SSR
+7. The browser hydrates using `src/framework/entry.browser.tsx`
 
 ### Client Navigation
 

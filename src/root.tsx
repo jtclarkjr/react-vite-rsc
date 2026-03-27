@@ -1,9 +1,9 @@
 import { AppShell } from '@/components/app-shell.tsx'
-import { resolveRoute } from '@/router.tsx'
+import { resolveRoute, type MatchedRoute, type RouteContext } from '@/router.tsx'
 import './index.css'
 
-export async function Root(props: { url: URL }) {
-  const page = await renderPage(props.url)
+export async function Root(props: { context: RouteContext; match: MatchedRoute | null; url: URL }) {
+  const page = await renderPage(props.match, props.url, props.context)
 
   return (
     <html lang="en">
@@ -20,13 +20,12 @@ export async function Root(props: { url: URL }) {
   )
 }
 
-async function renderPage(url: URL) {
-  const match = resolveRoute(url)
+async function renderPage(match: MatchedRoute | null, url: URL, context: RouteContext) {
   if (!match) {
     return <NotFoundPage url={url} />
   }
 
-  return await match.module.default({ url, params: match.params })
+  return await match.module.default({ context, url, params: match.params })
 }
 
 function NotFoundPage(props: { url: URL }) {
@@ -63,7 +62,8 @@ if (import.meta.vitest) {
 
   describe('Root', () => {
     it('renders the home route with hydrated starter state', async () => {
-      const html = renderToStaticMarkup(await Root({ url: new URL('https://example.com/') }))
+      const url = new URL('https://example.com/')
+      const html = renderToStaticMarkup(await Root({ context: {}, match: resolveRoute(url), url }))
 
       expect(html).toContain('Minimal React RSC boilerplate for Vite Plus.')
       expect(html).toContain('Hello from your React RSC starter.')
@@ -71,7 +71,8 @@ if (import.meta.vitest) {
     })
 
     it('renders the not found route for unknown paths', async () => {
-      const html = renderToStaticMarkup(await Root({ url: new URL('https://example.com/missing') }))
+      const url = new URL('https://example.com/missing')
+      const html = renderToStaticMarkup(await Root({ context: {}, match: resolveRoute(url), url }))
 
       expect(html).toContain('Page not found.')
       expect(html).toContain('/missing')

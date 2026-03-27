@@ -1,17 +1,40 @@
 import type { ReactNode } from 'react'
 
 export type RouteParams = Record<string, string>
+export type RouteContext = Record<string, unknown>
+export type RequestKind = 'ssr' | 'rsc' | 'action'
+
+export type RouteRedirect = {
+  type: 'redirect'
+  location: string
+  status?: 301 | 302 | 303 | 307 | 308
+}
+
+export type RouteMiddlewareArgs = {
+  context: RouteContext
+  params: RouteParams
+  request: Request
+  requestKind: RequestKind
+  url: URL
+}
+
+export type RouteMiddlewareResult = void | Response | RouteRedirect
+export type RouteMiddleware = (
+  args: RouteMiddlewareArgs
+) => Promise<RouteMiddlewareResult> | RouteMiddlewareResult
 
 export type PageProps = {
+  context: RouteContext
   params: RouteParams
   url: URL
 }
 
 export type RouteModule = {
   default: (props: PageProps) => Promise<ReactNode> | ReactNode
+  middleware?: RouteMiddleware[]
 }
 
-type MatchedRoute = {
+export type MatchedRoute = {
   module: RouteModule
   params: RouteParams
 }

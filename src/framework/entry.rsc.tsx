@@ -8,8 +8,10 @@ import {
 } from '@vitejs/plugin-rsc/rsc'
 import type { ReactNode } from 'react'
 import type { ReactFormState } from 'react-dom/client'
+import { runRequestMiddleware } from '@/framework/request-middleware.ts'
 import { parseRenderRequest } from '@/framework/request.tsx'
 import { Root } from '@/root.tsx'
+import { resolveRoute, type RequestKind } from '@/router.tsx'
 
 // The schema of payload which is serialized into RSC stream on rsc environment
 // and deserialized on ssr/client environments.
@@ -32,12 +34,26 @@ async function handler(request: Request): Promise<Response> {
   // differentiate RSC, SSR, action, etc.
   const renderRequest = parseRenderRequest(request)
   request = renderRequest.request
+  const match = resolveRoute(renderRequest.url)
+  const requestKind = toRequestKind(renderRequest)
+
+  const preActionResult = await runRequestMiddleware({
+    isRscRequest: renderRequest.isRsc,
+    match,
+    request,
+    requestKind,
+    url: renderRequest.url
+  })
+  if (preActionResult.response) {
+    return preActionResult.response
+  }
 
   // handle server function request
   let returnValue: RscPayload['returnValue'] | undefined
   let formState: ReactFormState | undefined
   let temporaryReferences: unknown
   let actionStatus: number | undefined
+  let context = preActionResult.context
   if (renderRequest.isAction === true) {
     if (renderRequest.actionId) {
       // action is called via `ReactClient.setServerCallback`.
@@ -72,6 +88,18 @@ async function handler(request: Request): Promise<Response> {
         })
       }
     }
+
+    const renderResult = await runRequestMiddleware({
+      isRscRequest: renderRequest.isRsc,
+      match,
+      request,
+      requestKind,
+      url: renderRequest.url
+    })
+    if (renderResult.response) {
+      return renderResult.response
+    }
+    context = renderResult.context
   }
 
   // serialization from React VDOM tree to RSC stream.
@@ -79,7 +107,7 @@ async function handler(request: Request): Promise<Response> {
   // so that new render reflects updated state from server function call
   // to achieve single round trip to mutate and fetch from server.
   const rscPayload: RscPayload = {
-    root: <Root url={renderRequest.url} />,
+    root: <Root context={context} match={match} url={renderRequest.url} />,
     formState,
     returnValue
   }
@@ -153,4 +181,12 @@ function normalizeFlightPreloadAsValue(stream: ReadableStream<Uint8Array>) {
 
 function normalizeFlightLine(line: string) {
   return line.startsWith(':HL[') ? line.replace('"stylesheet"]', '"style"]') : line
+}
+
+function toRequestKind(renderRequest: ReturnType<typeof parseRenderRequest>): RequestKind {
+  if (renderRequest.isAction) {
+    return 'action'
+  }
+
+  return renderRequest.isRsc ? 'rsc' : 'ssr'
 }

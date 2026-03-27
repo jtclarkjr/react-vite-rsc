@@ -9,6 +9,7 @@ import { startTransition, StrictMode, useEffect, useState } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { rscStream } from 'rsc-html-stream/client'
 import type { RscPayload } from '@/framework/entry.rsc'
+import { fetchRscPayloadWithRedirects } from '@/framework/rsc-fetch.ts'
 import { GlobalErrorBoundary } from '@/framework/error-boundary'
 import {
   startNavigationEvents,
@@ -58,7 +59,11 @@ async function main() {
   // re-fetch RSC and trigger re-rendering
   async function fetchRscPayload() {
     const renderRequest = createRscRenderRequest(window.location.href)
-    const payload = await createFromFetch<RscPayload>(fetch(renderRequest))
+    const { payload } = await fetchRscPayloadWithRedirects({
+      decode: (response) => createFromFetch<RscPayload>(response),
+      onRedirect: replaceLocation,
+      request: renderRequest
+    })
     setPayload(payload)
   }
 
@@ -70,11 +75,21 @@ async function main() {
       id,
       body: await encodeReply(args, { temporaryReferences })
     })
-    const payload = await createFromFetch<RscPayload>(fetch(renderRequest), {
-      temporaryReferences
+    const { payload, redirected } = await fetchRscPayloadWithRedirects({
+      decode: (response) =>
+        createFromFetch<RscPayload>(response, {
+          temporaryReferences
+        }),
+      onRedirect: replaceLocation,
+      request: renderRequest
     })
+
     setPayload(payload)
-    const { ok, data } = payload.returnValue!
+    if (redirected || !payload.returnValue) {
+      return undefined
+    }
+
+    const { ok, data } = payload.returnValue
     if (!ok) throw data
     return data
   })
@@ -104,3 +119,7 @@ async function main() {
 }
 
 void main()
+
+function replaceLocation(location: string) {
+  window.history.replaceState(null, '', location)
+}
