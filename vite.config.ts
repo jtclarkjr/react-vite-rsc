@@ -23,10 +23,10 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     rsc({
-      // `entries` option is only a shorthand for specifying each `rollupOptions.input` below
+      // `entries` option is only a shorthand for specifying each `rolldownOptions.input` below
       // > entries: { rsc, ssr, client },
       //
-      // by default, the plugin setup request handler based on `default export` of `rsc` environment `rollupOptions.input.index`.
+      // by default, the plugin setup request handler based on `default export` of `rsc` environment `rolldownOptions.input.index`.
       // This can be disabled when setting up own server handler e.g. `@cloudflare/vite-plugin`.
       // > serverHandler: false
     }),
@@ -41,7 +41,7 @@ export default defineConfig({
   ],
 
   // specify entry point for each environment.
-  // (currently the plugin assumes `rollupOptions.input.index` for some features.)
+  // (currently the plugin assumes `rolldownOptions.input.index` for some features.)
   environments: {
     // `rsc` environment loads modules with `react-server` condition.
     // this environment is responsible for:
@@ -53,7 +53,7 @@ export default defineConfig({
       },
       build: {
         minify: true,
-        rollupOptions: {
+        rolldownOptions: {
           input: {
             index: './src/framework/entry.rsc.tsx'
           }
