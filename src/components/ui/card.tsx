@@ -1,7 +1,7 @@
-import * as React from 'react'
+import { type HTMLAttributes } from 'react'
 import { cn } from '@/lib/utils.ts'
 
-export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function Card({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
       className={cn(
@@ -13,6 +13,6 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   )
 }
 
-export function CardContent({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) {
+export function CardContent({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
   return <div className={cn('p-6', className)} {...props} />
 }

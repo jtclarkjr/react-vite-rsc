@@ -5,7 +5,7 @@ import {
   createTemporaryReferenceSet,
   encodeReply
 } from '@vitejs/plugin-rsc/browser'
-import React from 'react'
+import { startTransition, StrictMode, useEffect, useState } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { rscStream } from 'rsc-html-stream/client'
 import type { RscPayload } from '@/framework/entry.rsc'
@@ -30,13 +30,13 @@ async function main() {
 
   // browser root component to (re-)render RSC payload as state
   function BrowserRoot() {
-    const [payload, setPayload_] = React.useState(initialPayload)
+    const [payload, setPayload_] = useState(initialPayload)
 
-    React.useEffect(() => {
-      setPayload = (v) => React.startTransition(() => setPayload_(v))
+    useEffect(() => {
+      setPayload = (v) => startTransition(() => setPayload_(v))
     }, [setPayload_])
 
-    React.useEffect(() => {
+    useEffect(() => {
       const stopNavigationEvents = startNavigationEvents()
       const unsubscribeLocation = subscribeToLocationChanges(() => {
         void fetchRscPayload()
@@ -81,11 +81,11 @@ async function main() {
 
   // hydration
   const browserRoot = (
-    <React.StrictMode>
+    <StrictMode>
       <GlobalErrorBoundary>
         <BrowserRoot />
       </GlobalErrorBoundary>
-    </React.StrictMode>
+    </StrictMode>
   )
   if ('__NO_HYDRATE' in globalThis) {
     createRoot(document).render(browserRoot)

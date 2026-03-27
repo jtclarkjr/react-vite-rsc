@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useMemo, useSyncExternalStore } from 'react'
 import {
   back,
   forward,
@@ -47,7 +47,7 @@ export function useRouter() {
 }
 
 export function usePathname() {
-  return React.useSyncExternalStore(
+  return useSyncExternalStore(
     subscribeToLocationChanges,
     () => getLocationSnapshot().pathname,
     () => ''
@@ -55,11 +55,11 @@ export function usePathname() {
 }
 
 export function useSearchParams(): ReadonlySearchParams {
-  const search = React.useSyncExternalStore(
+  const search = useSyncExternalStore(
     subscribeToLocationChanges,
     () => getLocationSnapshot().search,
     () => ''
   )
 
-  return React.useMemo(() => new URLSearchParams(search) as ReadonlySearchParams, [search])
+  return useMemo(() => new URLSearchParams(search) as ReadonlySearchParams, [search])
 }

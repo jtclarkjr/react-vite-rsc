@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useEffect, useRef } from 'react'
 import { createStore } from 'zustand/vanilla'
 import { useStore } from 'zustand'
 import {
@@ -27,13 +27,13 @@ export function createStarterAppStore(initialState: StarterAppState) {
 }
 
 export function useStarterAppStoreRef(initialState: StarterAppState) {
-  const storeRef = React.useRef<ReturnType<typeof createStarterAppStore> | null>(null)
+  const storeRef = useRef<ReturnType<typeof createStarterAppStore> | null>(null)
 
   if (!storeRef.current) {
     storeRef.current = createStarterAppStore(initialState)
   }
 
-  React.useEffect(() => {
+  useEffect(() => {
     storeRef.current?.setState((state) => ({
       ...state,
       ...initialState

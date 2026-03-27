@@ -1,6 +1,6 @@
 'use client'
 
-import * as React from 'react'
+import { useActionState } from 'react'
 import { useFormStatus } from 'react-dom'
 import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
@@ -11,7 +11,7 @@ import { initialBlogActionState, type BlogActionState } from '@/features/blog/st
 
 export function BlogActionForm(props: { notes: BlogNote[]; slug: string }) {
   const action = addBlogNote.bind(null, props.slug)
-  const [state, formAction] = React.useActionState<BlogActionState, FormData>(
+  const [state, formAction] = useActionState<BlogActionState, FormData>(
     action,
     initialBlogActionState
   )
