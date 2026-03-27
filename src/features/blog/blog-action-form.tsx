@@ -6,9 +6,10 @@ import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import { addBlogNote } from '@/features/blog/actions.tsx'
+import type { BlogNote } from '@/features/blog/schema.ts'
 import { initialBlogActionState, type BlogActionState } from '@/features/blog/state.ts'
 
-export function BlogActionForm(props: { notes: string[]; slug: string }) {
+export function BlogActionForm(props: { notes: BlogNote[]; slug: string }) {
   const action = addBlogNote.bind(null, props.slug)
   const [state, formAction] = React.useActionState<BlogActionState, FormData>(
     action,
