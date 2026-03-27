@@ -1,18 +1,27 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useStore } from '@nanostores/react'
 import { RotateCcw } from '@/components/ui/icons.tsx'
 import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import type { StarterAppState } from '@/features/starter/state.ts'
-import { useStarterAppSelector, useStarterAppStoreRef } from '@/features/starter/app-store.tsx'
+import {
+  $starterApp,
+  hydrateStarterAppState,
+  resetWelcomeMessage,
+  setWelcomeMessage
+} from '@/features/starter/app-store.tsx'
 
 export function StarterHomeClient(props: { initialState: StarterAppState }) {
-  const store = useStarterAppStoreRef(props.initialState)
-  const welcomeMessage = useStarterAppSelector(store, (state) => state.welcomeMessage)
-  const serverRenderedAt = useStarterAppSelector(store, (state) => state.serverRenderedAt)
-  const setWelcomeMessage = useStarterAppSelector(store, (state) => state.setWelcomeMessage)
-  const resetWelcomeMessage = useStarterAppSelector(store, (state) => state.resetWelcomeMessage)
+  const { welcomeMessage, serverRenderedAt } = useStore($starterApp, {
+    ssr: () => props.initialState
+  })
+
+  useEffect(() => {
+    hydrateStarterAppState(props.initialState)
+  }, [props.initialState.serverRenderedAt, props.initialState.welcomeMessage])
 
   return (
     <Card>
@@ -22,7 +31,7 @@ export function StarterHomeClient(props: { initialState: StarterAppState }) {
           <Input
             value={welcomeMessage}
             onChange={(event) => setWelcomeMessage(event.target.value)}
-            placeholder="Update store-backed state"
+            placeholder="Update starter state"
           />
         </div>
 

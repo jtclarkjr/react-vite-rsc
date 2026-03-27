@@ -1,81 +1,67 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { createStore } from 'zustand/vanilla'
-import { useStore } from 'zustand'
+import { map } from 'nanostores'
 import {
   createStarterAppState,
   defaultWelcomeMessage,
   type StarterAppState
 } from '@/features/starter/state.ts'
 
-type StarterAppActions = {
-  resetWelcomeMessage: () => void
-  setServerRenderedAt: (timestamp: string) => void
-  setWelcomeMessage: (message: string) => void
+export const $starterApp = map<StarterAppState>(createStarterAppState())
+
+export function hydrateStarterAppState(state: StarterAppState) {
+  $starterApp.set(state)
 }
 
-export type StarterAppStore = StarterAppState & StarterAppActions
-
-export function createStarterAppStore(initialState: StarterAppState) {
-  return createStore<StarterAppStore>()((set) => ({
-    ...initialState,
-    setWelcomeMessage: (message) => set({ welcomeMessage: message }),
-    resetWelcomeMessage: () => set({ welcomeMessage: defaultWelcomeMessage }),
-    setServerRenderedAt: (serverRenderedAt) => set({ serverRenderedAt })
-  }))
+export function setWelcomeMessage(message: string) {
+  $starterApp.setKey('welcomeMessage', message)
 }
 
-export function useStarterAppStoreRef(initialState: StarterAppState) {
-  const storeRef = useRef<ReturnType<typeof createStarterAppStore> | null>(null)
-
-  if (!storeRef.current) {
-    storeRef.current = createStarterAppStore(initialState)
-  }
-
-  useEffect(() => {
-    storeRef.current?.setState((state) => ({
-      ...state,
-      ...initialState
-    }))
-  }, [initialState.serverRenderedAt, initialState.welcomeMessage])
-
-  return storeRef.current
+export function resetWelcomeMessage() {
+  $starterApp.setKey('welcomeMessage', defaultWelcomeMessage)
 }
 
-export function useStarterAppSelector<T>(
-  store: ReturnType<typeof createStarterAppStore>,
-  selector: (state: StarterAppStore) => T
-) {
-  return useStore(store, selector)
+export function setServerRenderedAt(timestamp: string) {
+  $starterApp.setKey('serverRenderedAt', timestamp)
 }
 
 if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest
+  const { beforeEach, describe, expect, it } = import.meta.vitest
 
-  describe('createStarterAppStore', () => {
+  describe('starter-app-store', () => {
+    beforeEach(() => {
+      hydrateStarterAppState(createStarterAppState())
+    })
+
     it('starts with the default state', () => {
-      const store = createStarterAppStore(createStarterAppState())
-
-      expect(store.getState().welcomeMessage).toBe(defaultWelcomeMessage)
-      expect(store.getState().serverRenderedAt).toBe('')
+      expect($starterApp.get().welcomeMessage).toBe(defaultWelcomeMessage)
+      expect($starterApp.get().serverRenderedAt).toBe('')
     })
 
     it('updates and resets the welcome message', () => {
-      const store = createStarterAppStore(createStarterAppState())
+      setWelcomeMessage('Updated from a test')
+      expect($starterApp.get().welcomeMessage).toBe('Updated from a test')
+      expect($starterApp.get().serverRenderedAt).toBe('')
 
-      store.getState().setWelcomeMessage('Updated from a test')
-      expect(store.getState().welcomeMessage).toBe('Updated from a test')
-
-      store.getState().resetWelcomeMessage()
-      expect(store.getState().welcomeMessage).toBe(defaultWelcomeMessage)
+      resetWelcomeMessage()
+      expect($starterApp.get().welcomeMessage).toBe(defaultWelcomeMessage)
     })
 
     it('records the SSR timestamp', () => {
-      const store = createStarterAppStore(createStarterAppState())
+      setServerRenderedAt('2026-03-25T00:00:00.000Z')
+      expect($starterApp.get().serverRenderedAt).toBe('2026-03-25T00:00:00.000Z')
+      expect($starterApp.get().welcomeMessage).toBe(defaultWelcomeMessage)
+    })
 
-      store.getState().setServerRenderedAt('2026-03-25T00:00:00.000Z')
-      expect(store.getState().serverRenderedAt).toBe('2026-03-25T00:00:00.000Z')
+    it('hydrates the store from a server snapshot', () => {
+      const state = {
+        welcomeMessage: 'Hydrated from the server',
+        serverRenderedAt: '2026-03-26T00:00:00.000Z'
+      } satisfies StarterAppState
+
+      hydrateStarterAppState(state)
+
+      expect($starterApp.get()).toEqual(state)
     })
   })
 }

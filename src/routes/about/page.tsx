@@ -5,7 +5,7 @@ const includedItems = [
   'Custom file-based page routes on top of the current RSC architecture',
   'Static and dynamic routes, including `src/routes/blog/[slug]/page.tsx` for `/blog/:slug` paths',
   'A blog server-action example using `useActionState` and progressive enhancement',
-  'Zustand with SSR-friendly starter state hydration',
+  'Nanostores with SSR-friendly starter state hydration',
   'shadcn/ui-style Button, Input, and Card primitives',
   'Vite Plus build, lint, format, and test commands',
   'Feature code organized into dedicated folders instead of flat files under `src/features`'
