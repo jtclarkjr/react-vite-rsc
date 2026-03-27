@@ -48,6 +48,9 @@ export default defineConfig({
     // - RSC stream serialization (React VDOM -> RSC stream)
     // - server functions handling
     rsc: {
+      define: {
+        'process.env.NODE_ENV': '"production"'
+      },
       build: {
         rollupOptions: {
           input: {
@@ -69,7 +72,17 @@ export default defineConfig({
         rollupOptions: {
           input: {
             index: './src/framework/entry.ssr.tsx'
-          }
+          },
+          plugins: [
+            {
+              name: 'remove-legacy-server-renderer',
+              load(id) {
+                if (id.includes('react-dom-server-legacy.browser.production')) {
+                  return 'module.exports = {};'
+                }
+              }
+            }
+          ]
         }
       }
     },
