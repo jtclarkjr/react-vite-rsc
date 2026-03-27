@@ -67,6 +67,8 @@ for the documentation.
 
 - [`./src/framework/entry.{browser,rsc,ssr}.tsx`](./src/framework) (with inline comments) provides
   an overview of how low level RSC (React flight) API can be used to build RSC framework.
+- See [`./docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including file-based
+  route conventions, server page props, client navigation hooks, and examples.
 - You can use [`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect) to
   understand how `"use client"` and `"use server"` directives are transformed internally.
 - This repo uses `@typescript/native-preview`, so plain type checking runs through TS 7 / `tsgo` via

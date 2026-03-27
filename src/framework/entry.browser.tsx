@@ -10,6 +10,11 @@ import { createRoot, hydrateRoot } from 'react-dom/client'
 import { rscStream } from 'rsc-html-stream/client'
 import type { RscPayload } from '@/framework/entry.rsc'
 import { GlobalErrorBoundary } from '@/framework/error-boundary'
+import {
+  startNavigationEvents,
+  subscribeToLocationChanges,
+  subscribeToRefreshRequests
+} from '@/framework/navigation/store.ts'
 import { createRscRenderRequest } from '@/framework/request'
 
 async function main() {
@@ -31,9 +36,20 @@ async function main() {
       setPayload = (v) => React.startTransition(() => setPayload_(v))
     }, [setPayload_])
 
-    // re-fetch/render on client side navigation
     React.useEffect(() => {
-      return listenNavigation(() => fetchRscPayload())
+      const stopNavigationEvents = startNavigationEvents()
+      const unsubscribeLocation = subscribeToLocationChanges(() => {
+        void fetchRscPayload()
+      })
+      const unsubscribeRefresh = subscribeToRefreshRequests(() => {
+        void fetchRscPayload()
+      })
+
+      return () => {
+        unsubscribeRefresh()
+        unsubscribeLocation()
+        stopNavigationEvents()
+      }
     }, [])
 
     return payload.root
@@ -84,54 +100,6 @@ async function main() {
     import.meta.hot.on('rsc:update', () => {
       void fetchRscPayload()
     })
-  }
-}
-
-// a little helper to setup events interception for client side navigation
-function listenNavigation(onNavigation: () => void) {
-  window.addEventListener('popstate', onNavigation)
-
-  const oldPushState = window.history.pushState.bind(window.history)
-  window.history.pushState = function (...args) {
-    const res = oldPushState(...args)
-    onNavigation()
-    return res
-  }
-
-  const oldReplaceState = window.history.replaceState.bind(window.history)
-  window.history.replaceState = function (...args) {
-    const res = oldReplaceState(...args)
-    onNavigation()
-    return res
-  }
-
-  function onClick(e: MouseEvent) {
-    let link = (e.target as Element).closest('a')
-    if (
-      link &&
-      link instanceof HTMLAnchorElement &&
-      link.href &&
-      (!link.target || link.target === '_self') &&
-      link.origin === location.origin &&
-      !link.hasAttribute('download') &&
-      e.button === 0 && // left clicks only
-      !e.metaKey && // open in new tab (mac)
-      !e.ctrlKey && // open in new tab (windows)
-      !e.altKey && // download
-      !e.shiftKey &&
-      !e.defaultPrevented
-    ) {
-      e.preventDefault()
-      history.pushState(null, '', link.href)
-    }
-  }
-  document.addEventListener('click', onClick)
-
-  return () => {
-    document.removeEventListener('click', onClick)
-    window.removeEventListener('popstate', onNavigation)
-    window.history.pushState = oldPushState
-    window.history.replaceState = oldReplaceState
   }
 }
 
