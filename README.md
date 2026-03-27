@@ -79,6 +79,62 @@ for the documentation.
 - Dynamic routes are supported through folder names like `src/routes/blog/[slug]/page.tsx`, which
   maps to `/blog/:slug` paths such as `/blog/example-slug`.
 
+## Code Splitting
+
+The client build uses Rolldown's `codeSplitting` to break the single client bundle into smaller,
+cacheable chunks. This keeps initial page loads fast and ensures users only download the JavaScript
+needed for the current route.
+
+### Current chunk layout
+
+| Chunk          | Contents                                        | When loaded                           |
+| -------------- | ----------------------------------------------- | ------------------------------------- |
+| `vendor-react` | `react`, `react-dom`                            | Every page (cached long-term)         |
+| `shared-ui`    | `tailwind-merge`, `clsx`, `cn()`, UI primitives | Pages using interactive UI components |
+| `feature-*`    | Per-feature `'use client'` components           | Only when the route needs them        |
+| `index`        | Framework bootstrap, navigation, error boundary | Every page                            |
+
+### Adding a new feature with client components
+
+1. Create client components in `src/features/<name>/` with a `'use client'` directive.
+2. Add a `codeSplitting` group in `vite.config.ts`:
+   ```ts
+   {
+     name: 'feature-<name>',
+     test: /src[\\/]features[\\/]<name>[\\/]/
+   }
+   ```
+3. Run `vp build` and verify the new `feature-<name>` chunk appears in the output.
+
+### Adding a shared dependency used by client components
+
+If a new package is imported by multiple `'use client'` components across features, add it to the
+`shared-ui` group regex in `vite.config.ts` so it gets its own cacheable chunk instead of being
+duplicated or inlined into the first feature that imports it:
+
+```ts
+{
+  name: 'shared-ui',
+  test: /tailwind-merge|clsx|new-package|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
+}
+```
+
+For large, independently-versioned packages (e.g. a charting library), create a dedicated vendor
+chunk instead:
+
+```ts
+{
+  name: 'vendor-charts',
+  test: /[\\/]node_modules[\\/]recharts[\\/]/
+}
+```
+
+### Server bundle notes
+
+Server bundles (RSC and SSR) are also optimized in `vite.config.ts` with `process.env.NODE_ENV`
+defines and minification enabled. See `CLAUDE.md` for details on those optimizations and rules for
+keeping bundles small.
+
 ## Deployment
 
 See [vite-plugin-rsc-deploy-example](https://github.com/hi-ogawa/vite-plugin-rsc-deploy-example)
