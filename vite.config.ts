@@ -52,6 +52,7 @@ export default defineConfig({
         'process.env.NODE_ENV': '"production"'
       },
       build: {
+        minify: true,
         rollupOptions: {
           input: {
             index: './src/framework/entry.rsc.tsx'
@@ -69,6 +70,7 @@ export default defineConfig({
         'process.env.NODE_ENV': '"production"'
       },
       build: {
+        minify: true,
         rollupOptions: {
           input: {
             index: './src/framework/entry.ssr.tsx'
@@ -98,6 +100,32 @@ export default defineConfig({
         rollupOptions: {
           input: {
             index: './src/framework/entry.browser.tsx'
+          },
+          output: {
+            advancedChunks: {
+              groups: [
+                {
+                  name: 'vendor-react',
+                  test: /[\\/]node_modules[\\/]react(-dom)?[\\/]/
+                },
+                {
+                  name: 'shared-ui',
+                  test: /tailwind-merge|clsx|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
+                },
+                {
+                  name: 'feature-blog',
+                  test: /src[\\/]features[\\/]blog[\\/]/
+                },
+                {
+                  name: 'feature-starter',
+                  test: /src[\\/]features[\\/]starter[\\/]/
+                },
+                {
+                  name: 'feature-protected',
+                  test: /src[\\/]features[\\/]protected[\\/]/
+                }
+              ]
+            }
           }
         }
       }
