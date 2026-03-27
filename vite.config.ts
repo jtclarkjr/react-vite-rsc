@@ -102,7 +102,7 @@ export default defineConfig({
             index: './src/framework/entry.browser.tsx'
           },
           output: {
-            advancedChunks: {
+            codeSplitting: {
               groups: [
                 {
                   name: 'vendor-react',
