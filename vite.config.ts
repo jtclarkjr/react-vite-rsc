@@ -71,7 +71,7 @@ export default defineConfig({
       },
       build: {
         minify: true,
-        rollupOptions: {
+        rolldownOptions: {
           input: {
             index: './src/framework/entry.ssr.tsx'
           },
@@ -97,7 +97,7 @@ export default defineConfig({
     // - calling server functions
     client: {
       build: {
-        rollupOptions: {
+        rolldownOptions: {
           input: {
             index: './src/framework/entry.browser.tsx'
           },
