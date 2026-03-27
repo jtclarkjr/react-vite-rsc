@@ -62,6 +62,9 @@ export default defineConfig({
     // - RSC stream deserialization (RSC stream -> React VDOM)
     // - traditional SSR (React VDOM -> HTML string/stream)
     ssr: {
+      define: {
+        'process.env.NODE_ENV': '"production"'
+      },
       build: {
         rollupOptions: {
           input: {
