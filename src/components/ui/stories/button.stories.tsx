@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { ArrowRight, RotateCcw } from 'lucide-react'
 import { expect, fn, userEvent, within } from 'storybook/test'
 import { Button } from '@/components/ui/button.tsx'
+import { ArrowRight, RotateCcw } from '@/components/ui/icons.tsx'
 
 const meta = {
   title: 'UI/Button',
