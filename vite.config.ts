@@ -1,11 +1,50 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
+import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite-plus'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+
+/** Escape special regex characters in a string */
+const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+
+/** Read subdirectory names from a path (returns [] if path doesn't exist) */
+const subdirs = (dir: string) =>
+  fs.existsSync(dir)
+    ? fs
+        .readdirSync(dir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name)
+    : []
+
+/**
+ * Auto-generates Rolldown codeSplitting groups from the project structure.
+ * - `react`: React runtime, cached long-term
+ * - `shared-ui`: UI utility libs and primitives shared across features
+ * - `feature-<name>`: one chunk per `src/features/<name>/` directory (auto-discovered)
+ */
+function codeSplittingGroups() {
+  const sep = '[\\\\/]'
+  const featurePath = (name: string) =>
+    new RegExp(`src${sep}features${sep}${escapeRegex(name)}${sep}`)
+
+  return {
+    groups: [
+      { name: 'react', test: /[\\/]node_modules[\\/]react(-dom)?[\\/]/ },
+      {
+        name: 'shared-ui',
+        test: /tailwind-merge|clsx|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
+      },
+      ...subdirs(path.resolve(dirname, 'src/features')).map((name) => ({
+        name: `feature-${name}`,
+        test: featurePath(name)
+      }))
+    ]
+  }
+}
 
 export default defineConfig({
   staged: {
@@ -102,30 +141,7 @@ export default defineConfig({
             index: './src/framework/entry.browser.tsx'
           },
           output: {
-            codeSplitting: {
-              groups: [
-                {
-                  name: 'vendor-react',
-                  test: /[\\/]node_modules[\\/]react(-dom)?[\\/]/
-                },
-                {
-                  name: 'shared-ui',
-                  test: /tailwind-merge|clsx|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
-                },
-                {
-                  name: 'feature-blog',
-                  test: /src[\\/]features[\\/]blog[\\/]/
-                },
-                {
-                  name: 'feature-starter',
-                  test: /src[\\/]features[\\/]starter[\\/]/
-                },
-                {
-                  name: 'feature-protected',
-                  test: /src[\\/]features[\\/]protected[\\/]/
-                }
-              ]
-            }
+            codeSplitting: codeSplittingGroups()
           }
         }
       }

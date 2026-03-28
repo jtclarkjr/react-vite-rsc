@@ -10,3 +10,5 @@ storybook-static
 .claude/
 AGENTS.md
 CLAUDE.md
+.vercel
+.env*.local

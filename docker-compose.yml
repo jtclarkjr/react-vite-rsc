@@ -1,0 +1,26 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+    image: react-vite-rsc:latest
+    ports:
+      - '3000:3000'
+    restart: unless-stopped
+
+  app-dev:
+    profiles:
+      - dev
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: preview
+    environment:
+      PORT: 3000
+    image: react-vite-rsc:preview
+    ports:
+      - '3001:3000'
+    restart: unless-stopped

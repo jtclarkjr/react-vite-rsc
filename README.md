@@ -87,47 +87,24 @@ needed for the current route.
 
 ### Current chunk layout
 
-| Chunk          | Contents                                        | When loaded                           |
-| -------------- | ----------------------------------------------- | ------------------------------------- |
-| `vendor-react` | `react`, `react-dom`                            | Every page (cached long-term)         |
-| `shared-ui`    | `tailwind-merge`, `clsx`, `cn()`, UI primitives | Pages using interactive UI components |
-| `feature-*`    | Per-feature `'use client'` components           | Only when the route needs them        |
-| `index`        | Framework bootstrap, navigation, error boundary | Every page                            |
+| Chunk       | Contents                                        | When loaded                           |
+| ----------- | ----------------------------------------------- | ------------------------------------- |
+| `react`     | `react`, `react-dom`                            | Every page (cached long-term)         |
+| `shared-ui` | `tailwind-merge`, `clsx`, `cn()`, UI primitives | Pages using interactive UI components |
+| `feature-*` | Per-feature `'use client'` components           | Only when the route needs them        |
+| `index`     | Framework bootstrap, navigation, error boundary | Every page                            |
 
 ### Adding a new feature with client components
 
-1. Create client components in `src/features/<name>/` with a `'use client'` directive.
-2. Add a `codeSplitting` group in `vite.config.ts`:
-   ```ts
-   {
-     name: 'feature-<name>',
-     test: /src[\\/]features[\\/]<name>[\\/]/
-   }
-   ```
-3. Run `vp build` and verify the new `feature-<name>` chunk appears in the output.
+Just create client components in `src/features/<name>/` with a `'use client'` directive. The
+`codeSplittingGroups()` function in `vite.config.ts` scans `src/features/` at build time and
+generates a `feature-<name>` chunk automatically. No manual config needed.
 
 ### Adding a shared dependency used by client components
 
 If a new package is imported by multiple `'use client'` components across features, add it to the
-`shared-ui` group regex in `vite.config.ts` so it gets its own cacheable chunk instead of being
-duplicated or inlined into the first feature that imports it:
-
-```ts
-{
-  name: 'shared-ui',
-  test: /tailwind-merge|clsx|new-package|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
-}
-```
-
-For large, independently-versioned packages (e.g. a charting library), create a dedicated vendor
-chunk instead:
-
-```ts
-{
-  name: 'vendor-charts',
-  test: /[\\/]node_modules[\\/]recharts[\\/]/
-}
-```
+`shared-ui` regex in `codeSplittingGroups()` so it gets its own cacheable chunk instead of being
+inlined into the first feature that imports it.
 
 ### Server bundle notes
 
