@@ -1,0 +1,10 @@
+.agents
+.claude
+.git
+.pnpm-store
+.storybook
+.vite-hooks
+.vscode
+dist
+node_modules
+storybook-static
