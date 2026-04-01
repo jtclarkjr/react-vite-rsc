@@ -15,7 +15,13 @@ This setup combines:
 
 ## Commands
 
-Use Vite+ commands directly with `vp` aliases if that is how your local environment is configured.
+Install `vp` from the [Vite+ site](https://vite.plus/) before running project commands:
+
+```sh
+curl -fsSL https://vite.plus | bash
+```
+
+Use Vite+ commands directly with `vp`.
 
 ```sh
 # install dependencies and run vite+ config
