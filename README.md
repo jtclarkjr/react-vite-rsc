@@ -36,9 +36,6 @@ vp check
 vp fmt
 vp lint
 
-# run raw TypeScript checking only with TS 7 / tsgo
-vp run typecheck
-
 # run tests
 vp test
 
@@ -102,8 +99,6 @@ for the underlying RSC documentation.
   integration points with inline comments.
 - See [`docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including page modules,
   Nitro endpoints, and client navigation behavior.
-- This repo uses `@typescript/native-preview`, so plain type checking runs through TS 7 / `tsgo` via
-  `vp run typecheck` or `vp exec tsgo --noEmit`.
 - Keep `src/features` organized by feature folder, such as `src/features/starter/app-store.tsx`,
   instead of adding flat files directly under `src/features`.
 - Dynamic routes are supported through folder names like `src/routes/blog/[slug]/page.tsx`, which
