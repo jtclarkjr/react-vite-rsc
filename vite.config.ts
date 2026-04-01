@@ -8,6 +8,10 @@ import { defineConfig } from 'vite-plus'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const isVitest = process.env.VITEST === 'true'
+const useNitro = process.argv.includes('build') && !isVitest
+// Nitro only participates in production builds. During `vp dev`, React must stay on the
+// development JSX runtime and the default plugin-rsc server handles requests directly.
+const nodeEnv = JSON.stringify(useNitro ? 'production' : 'development')
 
 export default defineConfig({
   staged: {
@@ -24,18 +28,23 @@ export default defineConfig({
     }
   },
   plugins: [
-    ...(!isVitest ? [nitro()] : []),
+    ...(useNitro ? [nitro()] : []),
     tailwindcss(),
-    rsc({
-      serverHandler: false,
-      loadModuleDevProxy: true
-      // `entries` option is only a shorthand for specifying each `rolldownOptions.input` below
-      // > entries: { rsc, ssr, client },
-      //
-      // by default, the plugin setup request handler based on `default export` of `rsc` environment `rolldownOptions.input.index`.
-      // This can be disabled when setting up own server handler e.g. `@cloudflare/vite-plugin`.
-      // > serverHandler: false
-    }),
+    rsc(
+      useNitro
+        ? {
+            serverHandler: false,
+            loadModuleDevProxy: true
+          }
+        : {
+            // `entries` option is only a shorthand for specifying each `rolldownOptions.input` below
+            // > entries: { rsc, ssr, client },
+            //
+            // by default, the plugin setup request handler based on `default export` of `rsc` environment `rolldownOptions.input.index`.
+            // This can be disabled when setting up own server handler e.g. `@cloudflare/vite-plugin`.
+            // > serverHandler: false
+          }
+    ),
 
     // use any of react plugins https://github.com/vitejs/vite-plugin-react
     // to enable client component HMR
@@ -55,7 +64,7 @@ export default defineConfig({
     // - server functions handling
     rsc: {
       define: {
-        'process.env.NODE_ENV': '"production"'
+        'process.env.NODE_ENV': nodeEnv
       },
       build: {
         minify: true,
@@ -73,7 +82,7 @@ export default defineConfig({
     // - traditional SSR (React VDOM -> HTML string/stream)
     ssr: {
       define: {
-        'process.env.NODE_ENV': '"production"'
+        'process.env.NODE_ENV': nodeEnv
       },
       build: {
         minify: true,

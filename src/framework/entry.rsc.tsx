@@ -1,9 +1,9 @@
 import { parseRenderRequest } from '@/framework/request.tsx'
 import { renderRequestToDocumentResponse, renderRequestToRscResponse } from '@/framework/render.tsx'
 
-export default { fetch: handler }
+export default { fetch }
 
-async function handler(request: Request): Promise<Response> {
+export async function fetch(request: Request): Promise<Response> {
   const renderRequest = parseRenderRequest(request)
   if (renderRequest.isRsc) {
     return renderRequestToRscResponse(request)

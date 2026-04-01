@@ -6,13 +6,26 @@ import { injectRSCPayload } from 'rsc-html-stream/server'
 import type { RscPayload } from '@/framework/rsc-payload.ts'
 
 export default {
-  fetch: async (request: Request) => {
-    const rscEntryModule = await import.meta.viteRsc.loadModule<typeof import('./entry.rsc.tsx')>(
-      'rsc',
-      'index'
-    )
-    return rscEntryModule.default.fetch(request)
+  fetch
+}
+
+export async function fetch(request: Request) {
+  const rscEntryModule = await import.meta.viteRsc.loadModule<typeof import('./entry.rsc.tsx')>(
+    'rsc',
+    'index'
+  )
+  const rscFetch =
+    typeof rscEntryModule.fetch === 'function'
+      ? rscEntryModule.fetch
+      : typeof rscEntryModule.default?.fetch === 'function'
+        ? rscEntryModule.default.fetch
+        : undefined
+
+  if (!rscFetch) {
+    throw new TypeError('RSC entry did not expose a fetch handler')
   }
+
+  return rscFetch(request)
 }
 
 export async function renderHTML(
