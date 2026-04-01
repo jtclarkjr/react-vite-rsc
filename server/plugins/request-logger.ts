@@ -8,8 +8,7 @@ type RequestLogContext = {
 
 export default definePlugin((nitroApp) => {
   nitroApp.hooks.hook('request', (event) => {
-    const pathname = new URL(event.req.url).pathname
-    const kind = classifyLoggedRequest(pathname)
+    const kind = classifyLoggedRequest(event.req)
     if (!kind) {
       return
     }

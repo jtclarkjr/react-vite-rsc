@@ -20,7 +20,8 @@ export default defineConfig({
   },
   lint: { options: { typeAware: true, typeCheck: true } },
   test: {
-    includeSource: ['src/**/*.{ts,tsx}']
+    includeSource: ['src/**/*.{ts,tsx}'],
+    setupFiles: ['./vitest.setup.ts']
   },
   resolve: {
     alias: {

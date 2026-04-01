@@ -1,1 +1,1 @@
-export {}
+import '../vitest.setup.ts'
