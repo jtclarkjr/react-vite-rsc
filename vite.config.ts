@@ -1,50 +1,13 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
-import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { nitro } from 'nitro/vite'
 import { defineConfig } from 'vite-plus'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
-
-/** Escape special regex characters in a string */
-const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-
-/** Read subdirectory names from a path (returns [] if path doesn't exist) */
-const subdirs = (dir: string) =>
-  fs.existsSync(dir)
-    ? fs
-        .readdirSync(dir, { withFileTypes: true })
-        .filter((d) => d.isDirectory())
-        .map((d) => d.name)
-    : []
-
-/**
- * Auto-generates Rolldown codeSplitting groups from the project structure.
- * - `react`: React runtime, cached long-term
- * - `shared-ui`: UI utility libs and primitives shared across features
- * - `feature-<name>`: one chunk per `src/features/<name>/` directory (auto-discovered)
- */
-function codeSplittingGroups() {
-  const sep = '[\\\\/]'
-  const featurePath = (name: string) =>
-    new RegExp(`src${sep}features${sep}${escapeRegex(name)}${sep}`)
-
-  return {
-    groups: [
-      { name: 'react', test: /[\\/]node_modules[\\/]react(-dom)?[\\/]/ },
-      {
-        name: 'shared-ui',
-        test: /tailwind-merge|clsx|src[\\/](lib[\\/]utils|components[\\/]ui[\\/])/
-      },
-      ...subdirs(path.resolve(dirname, 'src/features')).map((name) => ({
-        name: `feature-${name}`,
-        test: featurePath(name)
-      }))
-    ]
-  }
-}
+const isVitest = process.env.VITEST === 'true'
 
 export default defineConfig({
   staged: {
@@ -56,12 +19,16 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      '@': path.resolve(dirname, './src')
+      '@': path.resolve(dirname, './src'),
+      '@server': path.resolve(dirname, './server')
     }
   },
   plugins: [
+    ...(!isVitest ? [nitro()] : []),
     tailwindcss(),
     rsc({
+      serverHandler: false,
+      loadModuleDevProxy: true
       // `entries` option is only a shorthand for specifying each `rolldownOptions.input` below
       // > entries: { rsc, ssr, client },
       //
@@ -139,9 +106,6 @@ export default defineConfig({
         rolldownOptions: {
           input: {
             index: './src/framework/entry.browser.tsx'
-          },
-          output: {
-            codeSplitting: codeSplittingGroups()
           }
         }
       }

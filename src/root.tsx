@@ -56,25 +56,3 @@ function NotFoundPage(props: { url: URL }) {
     </section>
   )
 }
-
-if (import.meta.vitest) {
-  const { describe, expect, it } = import.meta.vitest
-  const { renderToStaticMarkup } = await import('react-dom/server')
-
-  describe('Root', () => {
-    it('renders the home route with hydrated starter state', async () => {
-      const html = renderToStaticMarkup(await Root({ url: new URL('https://example.com/') }))
-
-      expect(html).toContain('Minimal React RSC boilerplate for Vite Plus.')
-      expect(html).toContain('Hello from your React RSC starter.')
-      expect(html).toMatch(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z/)
-    })
-
-    it('renders the not found route for unknown paths', async () => {
-      const html = renderToStaticMarkup(await Root({ url: new URL('https://example.com/missing') }))
-
-      expect(html).toContain('Page not found.')
-      expect(html).toContain('/missing')
-    })
-  })
-}

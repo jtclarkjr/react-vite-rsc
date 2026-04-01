@@ -14,7 +14,8 @@
     "target": "ESNext",
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@server/*": ["./server/*"]
     },
     "types": ["vite/client", "@vitejs/plugin-rsc/types"],
     "jsx": "react-jsx"

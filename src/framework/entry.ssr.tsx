@@ -3,7 +3,17 @@ import { use } from 'react'
 import type { ReactFormState } from 'react-dom/client'
 import { renderToReadableStream } from 'react-dom/server.edge'
 import { injectRSCPayload } from 'rsc-html-stream/server'
-import type { RscPayload } from '@/framework/entry.rsc'
+import type { RscPayload } from '@/framework/rsc-payload.ts'
+
+export default {
+  fetch: async (request: Request) => {
+    const rscEntryModule = await import.meta.viteRsc.loadModule<typeof import('./entry.rsc.tsx')>(
+      'rsc',
+      'index'
+    )
+    return rscEntryModule.default.fetch(request)
+  }
+}
 
 export async function renderHTML(
   rscStream: ReadableStream<Uint8Array>,

@@ -1,10 +1,12 @@
 # Routing
 
 This project uses a custom file-based router built directly on top of the current React Server
-Components setup. It does not use React Router, TanStack Router, or Next.js routing primitives.
+Components setup, with Nitro handling the outer HTTP runtime. It does not use React Router, TanStack
+Router, or Next.js routing primitives.
 
-The routing system has two parts:
+The routing system has three parts:
 
+- Nitro route handlers and a Nitro renderer that own the external HTTP contract
 - A server-side file matcher that resolves `src/routes/**/page.tsx` to URLs
 - A small client navigation layer that updates the browser URL and triggers a new RSC fetch
 
@@ -12,6 +14,12 @@ The routing system has two parts:
 
 The key pieces are:
 
+- `server/renderer.ts`
+  - Handles document requests through Nitro
+- `server/routes/_rsc`
+  - Serves internal RSC payload requests
+- `server/routes/_actions`
+  - Serves hydrated server action requests
 - `src/router.tsx`
   - Builds the route table from the filesystem with `import.meta.glob()`
   - Matches static and dynamic segments
@@ -19,7 +27,7 @@ The key pieces are:
   - Calls `resolveRoute(url)` and renders the matched page
   - Falls back to the built-in 404 page when nothing matches
 - `src/framework/entry.rsc.tsx`
-  - Handles incoming render requests and renders the app for both SSR and RSC responses
+  - Normalizes Nitro requests and renders the app for both SSR and RSC responses
 - `src/framework/entry.browser.tsx`
   - Hydrates the app in the browser
   - Re-fetches the RSC payload after navigation and refreshes
@@ -107,11 +115,13 @@ export default function BlogPage(props: PageProps) {
 ### Initial Page Load
 
 1. The browser requests a normal URL like `/about`
-2. `src/framework/entry.rsc.tsx` parses the request
-3. `src/root.tsx` calls `resolveRoute(url)`
-4. `src/router.tsx` matches the URL against `src/routes/**/page.tsx`
-5. The matched page is rendered as RSC, then wrapped into HTML for SSR
-6. The browser hydrates using `src/framework/entry.browser.tsx`
+2. Nitro forwards the request to `server/renderer.ts`
+3. The SSR Vite service delegates to the RSC Vite service
+4. `src/framework/entry.rsc.tsx` normalizes the request and starts the render
+5. `src/root.tsx` calls `resolveRoute(url)`
+6. `src/router.tsx` matches the URL against `src/routes/**/page.tsx`
+7. The matched page is rendered as RSC, then wrapped into HTML for SSR
+8. The browser hydrates using `src/framework/entry.browser.tsx`
 
 ### Client Navigation
 
@@ -122,7 +132,7 @@ The browser entry:
 - intercepts same-origin `<a href="...">` clicks
 - patches `history.pushState()` and `history.replaceState()`
 - listens for `popstate`
-- requests a fresh RSC payload for the new URL
+- requests a fresh RSC payload from `/_rsc/**` for the new URL
 
 That means these all work as navigation:
 
@@ -133,8 +143,8 @@ That means these all work as navigation:
 
 ### Refreshing the Current Route
 
-`router.refresh()` does not reload the whole document. It re-fetches the current route through the
-existing RSC pipeline and re-renders the page with the current URL.
+`router.refresh()` does not reload the whole document. It re-fetches the current route through
+Nitro's internal `/_rsc/**` endpoint and re-renders the page with the current URL.
 
 Use it when you want to re-run the current server render after a mutation or any other invalidation.
 
@@ -203,6 +213,18 @@ Notes:
 - `useRouter()` is client-only and must be used from a `'use client'` module
 - There is currently no `router.redirect()`
 - There is currently no route prefetch API
+
+## Internal Endpoints
+
+Nitro exposes two internal endpoints for the React runtime:
+
+- `GET /_rsc/**`
+  - Used for client-side navigation and refresh
+- `POST /_actions/:actionId`
+  - Used for hydrated server actions
+
+Progressive enhancement form submissions still post to the page URL itself, so the server can
+re-render the document response without JavaScript.
 
 ### `usePathname()`
 

@@ -1,11 +1,15 @@
-# Vite + RSC
+# Vite + RSC + Nitro
 
-This is a minimal react boilerplate that doesn't use a framework. Just react 19, vite (vite+), and
-rsc (server components)
+This is a minimal React 19 starter that keeps low-level React Server Components on top of Vite+
+while using Nitro as the HTTP runtime. The app still resolves pages from `src/routes/**/page.tsx`,
+but Nitro now owns document requests, internal RSC endpoints, and the production server output.
 
-This example shows how to set up a React application with
-[Server Component](https://react.dev/reference/rsc/server-components) features on Vite using
-[`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc).
+This setup combines:
+
+- [React Server Components](https://react.dev/reference/rsc/server-components)
+- [`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc)
+- [Nitro](https://nitro.build/)
+- [Vite+](https://vite.plus/)
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc/examples/starter)
 
@@ -14,9 +18,9 @@ This example shows how to set up a React application with
 Use Vite+ commands directly with `vp` aliases if that is how your local environment is configured.
 
 ```sh
-# install dependencies and run vite+ confg
+# install dependencies and run vite+ config
 vp install
-vp confg
+vp config
 
 # run the dev server
 vp dev
@@ -29,13 +33,6 @@ vp lint
 # run raw TypeScript checking only with TS 7 / tsgo
 vp run typecheck
 
-# or invoke tsgo directly
-vp exec tsgo --noEmit
-
-# remove @typescript/native-preview to fall back to built-in tsc (TS 5)
-# then use:
-vp exec tsc --noEmit
-
 # run tests
 vp test
 
@@ -44,74 +41,89 @@ vp build
 vp preview
 ```
 
-## API usage
+## Runtime Overview
+
+Nitro fronts the app at the HTTP layer:
+
+- document requests go through the Nitro renderer in [`server/renderer.ts`](./server/renderer.ts)
+- client navigations and refreshes fetch `GET /_rsc/**`
+- hydrated server actions post to `POST /_actions/:actionId`
+- progressive enhancement form posts still submit to the page URL itself
+
+The React rendering pipeline remains split across Vite environments:
+
+- [`src/framework/entry.rsc.tsx`](./src/framework/entry.rsc.tsx)
+  - normalizes Nitro requests
+  - executes server actions
+  - renders the React Flight payload
+- [`src/framework/entry.ssr.tsx`](./src/framework/entry.ssr.tsx)
+  - renders HTML from the RSC stream
+  - injects the initial Flight payload for hydration
+- [`src/framework/entry.browser.tsx`](./src/framework/entry.browser.tsx)
+  - hydrates the page
+  - re-fetches RSC payloads from Nitro endpoints
+
+Nitro configuration lives in:
+
+- [`nitro.config.ts`](./nitro.config.ts)
+- [`server/renderer.ts`](./server/renderer.ts)
+- [`server/routes/_rsc`](./server/routes/_rsc)
+- [`server/routes/_actions`](./server/routes/_actions)
+
+## API Usage
 
 See
 [`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc)
-for the documentation.
+for the underlying RSC documentation.
 
 - [`vite.config.ts`](./vite.config.ts)
   - `@vitejs/plugin-rsc/plugin`
-- [`./src/framework/entry.rsc.tsx`](./src/framework/entry.rsc.tsx)
+  - `nitro/vite`
+- [`src/framework/entry.rsc.tsx`](./src/framework/entry.rsc.tsx)
   - `@vitejs/plugin-rsc/rsc`
   - `import.meta.viteRsc.loadModule`
-- [`./src/framework/entry.ssr.tsx`](./src/framework/entry.ssr.tsx)
+- [`src/framework/entry.ssr.tsx`](./src/framework/entry.ssr.tsx)
   - `@vitejs/plugin-rsc/ssr`
   - `import.meta.viteRsc.loadBootstrapScriptContent`
   - `rsc-html-stream/server`
-- [`./src/framework/entry.browser.tsx`](./src/framework/entry.browser.tsx)
+- [`src/framework/entry.browser.tsx`](./src/framework/entry.browser.tsx)
   - `@vitejs/plugin-rsc/browser`
   - `rsc-html-stream/client`
 
 ## Notes
 
-- [`./src/framework/entry.{browser,rsc,ssr}.tsx`](./src/framework) (with inline comments) provides
-  an overview of how low level RSC (React flight) API can be used to build RSC framework.
-- See [`./docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including file-based
-  route conventions, server page props, client navigation hooks, and examples.
-- You can use [`vite-plugin-inspect`](https://github.com/antfu-collective/vite-plugin-inspect) to
-  understand how `"use client"` and `"use server"` directives are transformed internally.
+- [`src/framework/entry.{browser,rsc,ssr}.tsx`](./src/framework) provides the low-level RSC
+  integration points with inline comments.
+- See [`docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including page modules,
+  Nitro endpoints, and client navigation behavior.
 - This repo uses `@typescript/native-preview`, so plain type checking runs through TS 7 / `tsgo` via
-  `vp run typecheck` or `vp exec tsgo --noEmit`. Remove that package to fall back to built-in `tsc`
-  on TS 5. Use `vp check` for the full format, lint, and typecheck pass.
+  `vp run typecheck` or `vp exec tsgo --noEmit`.
 - Keep `src/features` organized by feature folder, such as `src/features/starter/app-store.tsx`,
   instead of adding flat files directly under `src/features`.
 - Dynamic routes are supported through folder names like `src/routes/blog/[slug]/page.tsx`, which
   maps to `/blog/:slug` paths such as `/blog/example-slug`.
+- Nitro v3 is currently beta in this setup. The app is planned and validated against the Node server
+  runtime first.
 
-## Code Splitting
+## Build Output
 
-The client build uses Rolldown's `codeSplitting` to break the single client bundle into smaller,
-cacheable chunks. This keeps initial page loads fast and ensures users only download the JavaScript
-needed for the current route.
+The app no longer uses manual client chunk groups. Client chunking is left to Vite/Rolldown's
+default behavior, while Nitro handles server route chunking and final runtime packaging.
 
-### Current chunk layout
+Production build output now lives under:
 
-| Chunk       | Contents                                        | When loaded                           |
-| ----------- | ----------------------------------------------- | ------------------------------------- |
-| `react`     | `react`, `react-dom`                            | Every page (cached long-term)         |
-| `shared-ui` | `tailwind-merge`, `clsx`, `cn()`, UI primitives | Pages using interactive UI components |
-| `feature-*` | Per-feature `'use client'` components           | Only when the route needs them        |
-| `index`     | Framework bootstrap, navigation, error boundary | Every page                            |
+- `.output/public` for browser assets
+- `.output/server/index.mjs` for the standalone Node server
 
-### Adding a new feature with client components
-
-Just create client components in `src/features/<name>/` with a `'use client'` directive. The
-`codeSplittingGroups()` function in `vite.config.ts` scans `src/features/` at build time and
-generates a `feature-<name>` chunk automatically. No manual config needed.
-
-### Adding a shared dependency used by client components
-
-If a new package is imported by multiple `'use client'` components across features, add it to the
-`shared-ui` regex in `codeSplittingGroups()` so it gets its own cacheable chunk instead of being
-inlined into the first feature that imports it.
-
-### Server bundle notes
-
-Server bundles (RSC and SSR) are also optimized in `vite.config.ts` with `process.env.NODE_ENV`
-defines and minification enabled. See `CLAUDE.md` for details on those optimizations and rules for
-keeping bundles small.
+The RSC and SSR Vite service bundles used by Nitro are generated under `node_modules/.nitro/vite`.
 
 ## Deployment
 
-See [vite-plugin-rsc-deploy-example](https://github.com/hi-ogawa/vite-plugin-rsc-deploy-example)
+Node-first deployment is the supported default:
+
+```sh
+vp build
+node .output/server/index.mjs
+```
+
+The provided `Dockerfile` now runs the Nitro server entry directly.

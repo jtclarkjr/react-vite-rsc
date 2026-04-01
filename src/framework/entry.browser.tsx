@@ -8,14 +8,14 @@ import {
 import { startTransition, StrictMode, useEffect, useState } from 'react'
 import { createRoot, hydrateRoot } from 'react-dom/client'
 import { rscStream } from 'rsc-html-stream/client'
-import type { RscPayload } from '@/framework/entry.rsc'
 import { GlobalErrorBoundary } from '@/framework/error-boundary'
+import type { RscPayload } from '@/framework/rsc-payload.ts'
 import {
   startNavigationEvents,
   subscribeToLocationChanges,
   subscribeToRefreshRequests
 } from '@/framework/navigation/store.ts'
-import { createRscRenderRequest } from '@/framework/request'
+import { createRscRenderRequest, createServerActionRequest } from '@/framework/request'
 
 async function main() {
   // stash `setPayload` function to trigger re-rendering
@@ -66,7 +66,7 @@ async function main() {
   // on server function request after hydration.
   setServerCallback(async (id, args) => {
     const temporaryReferences = createTemporaryReferenceSet()
-    const renderRequest = createRscRenderRequest(window.location.href, {
+    const renderRequest = createServerActionRequest(window.location.href, {
       id,
       body: await encodeReply(args, { temporaryReferences })
     })
