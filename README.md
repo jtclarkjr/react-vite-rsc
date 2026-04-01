@@ -99,6 +99,8 @@ for the underlying RSC documentation.
   integration points with inline comments.
 - See [`docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including page modules,
   Nitro endpoints, and client navigation behavior.
+- The original base for this repo was scaffolded with `vp create vite` using the `React` -> `RSC`
+  options.
 - Keep `src/features` organized by feature folder, such as `src/features/starter/app-store.tsx`,
   instead of adding flat files directly under `src/features`.
 - Dynamic routes are supported through folder names like `src/routes/blog/[slug]/page.tsx`, which
