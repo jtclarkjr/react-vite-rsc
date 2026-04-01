@@ -22,6 +22,17 @@ export default function HomePage() {
           </a>{' '}
           to see route params resolved from the filesystem and a server action example.
         </p>
+        <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
+          Nitro also powers a protected page demo at{' '}
+          <a href="/dashboard" className="text-foreground underline">
+            /dashboard
+          </a>{' '}
+          and an API demo at{' '}
+          <a href="/api/demo/request" className="text-foreground underline">
+            /api/demo/request
+          </a>
+          , both of which are logged by a Nitro request plugin.
+        </p>
       </div>
 
       <StarterHomeClient initialState={initialState} />

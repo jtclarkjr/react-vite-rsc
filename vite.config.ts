@@ -8,10 +8,11 @@ import { defineConfig } from 'vite-plus'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const isVitest = process.env.VITEST === 'true'
-const useNitro = process.argv.includes('build') && !isVitest
-// Nitro only participates in production builds. During `vp dev`, React must stay on the
-// development JSX runtime and the default plugin-rsc server handles requests directly.
-const nodeEnv = JSON.stringify(useNitro ? 'production' : 'development')
+const useNitro = !isVitest
+const isProductionBuild = process.argv.includes('build') && !isVitest
+// Nitro owns HTTP routing in both dev and prod. Keep the RSC and SSR environments on the
+// development runtime unless we are doing a production build.
+const nodeEnv = JSON.stringify(isProductionBuild ? 'production' : 'development')
 
 export default defineConfig({
   staged: {
@@ -30,21 +31,9 @@ export default defineConfig({
   plugins: [
     ...(useNitro ? [nitro()] : []),
     tailwindcss(),
-    rsc(
-      useNitro
-        ? {
-            serverHandler: false,
-            loadModuleDevProxy: true
-          }
-        : {
-            // `entries` option is only a shorthand for specifying each `rolldownOptions.input` below
-            // > entries: { rsc, ssr, client },
-            //
-            // by default, the plugin setup request handler based on `default export` of `rsc` environment `rolldownOptions.input.index`.
-            // This can be disabled when setting up own server handler e.g. `@cloudflare/vite-plugin`.
-            // > serverHandler: false
-          }
-    ),
+    rsc({
+      serverHandler: false
+    }),
 
     // use any of react plugins https://github.com/vitejs/vite-plugin-react
     // to enable client component HMR

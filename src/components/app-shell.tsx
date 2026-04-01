@@ -8,7 +8,8 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { href: '/', label: 'Home' },
-  { href: '/about', label: 'About' }
+  { href: '/about', label: 'About' },
+  { href: '/dashboard', label: 'Dashboard' }
 ]
 
 export function AppShell(props: { children: ReactNode; pathname: string }) {

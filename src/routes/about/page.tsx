@@ -5,6 +5,8 @@ const includedItems = [
   'Custom file-based page routes on top of the current RSC architecture',
   'Static and dynamic routes, including `src/routes/blog/[slug]/page.tsx` for `/blog/:slug` paths',
   'A blog server-action example using `useActionState` and progressive enhancement',
+  'A Nitro request logger plugin that classifies page and API requests',
+  'A Nitro middleware auth guard that protects `/dashboard` before the page route renders',
   'Nanostores with SSR-friendly starter state hydration',
   'shadcn/ui-style Button, Input, and Card primitives',
   'Vite Plus build, lint, format, and test commands',
