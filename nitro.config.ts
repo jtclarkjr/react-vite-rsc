@@ -3,12 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { defineNitroConfig } from 'nitro/config'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+const preset = process.env.NITRO_PRESET ?? (process.env.VERCEL ? 'vercel' : 'node_server')
 
 export default defineNitroConfig({
   alias: {
     '@server': path.resolve(dirname, './server')
   },
-  preset: 'node_server',
+  preset,
   serverDir: './server',
   renderer: {
     handler: './server/renderer.ts'
