@@ -15,7 +15,7 @@ This setup combines:
 
 ## Commands
 
-Install `vp` from the [Vite+ site](https://vite.plus/) before running project commands:
+Install `vp` from the [Vite+ site](https://viteplus.dev/) before running project commands:
 
 ```sh
 curl -fsSL https://vite.plus | bash
