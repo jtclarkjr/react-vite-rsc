@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useSyncExternalStore } from 'react'
+import type { PageRouteHref } from '@/page-routes.generated.ts'
 import {
   back,
   forward,
@@ -27,9 +28,9 @@ type ReadonlySearchParamsMethods = Pick<
 export type AppRouter = {
   back: () => void
   forward: () => void
-  push: (href: string) => void
+  push: (href: PageRouteHref) => void
   refresh: () => void
-  replace: (href: string) => void
+  replace: (href: PageRouteHref) => void
 }
 
 export type ReadonlySearchParams = ReadonlySearchParamsMethods
@@ -37,9 +38,13 @@ export type ReadonlySearchParams = ReadonlySearchParamsMethods
 const router: AppRouter = {
   back,
   forward,
-  push,
+  push(href) {
+    push(href)
+  },
   refresh,
-  replace
+  replace(href) {
+    replace(href)
+  }
 }
 
 export function useRouter() {

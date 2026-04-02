@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import type { AppRouter } from '@/framework/navigation'
 import { usePathname, useRouter, useSearchParams } from '@/framework/navigation'
 import { startNavigationEvents, subscribeToRefreshRequests } from '@/framework/navigation/store.ts'
+import { pageRoutes } from '@/page-routes.generated.ts'
 
 describe('navigation hooks', () => {
   let container: HTMLDivElement | null
@@ -48,7 +49,7 @@ describe('navigation hooks', () => {
     })
 
     await act(async () => {
-      router?.push('/about')
+      router?.push(pageRoutes.about.href())
     })
 
     expect(pathname).toBe('/about')
@@ -69,7 +70,9 @@ describe('navigation hooks', () => {
     })
 
     await act(async () => {
-      router?.replace('/blog/example-slug?view=full')
+      router?.replace(
+        pageRoutes.blogSlug.href({ slug: 'example-slug' }, { search: { view: 'full' } })
+      )
     })
 
     expect(searchParamValue).toBe('full')
@@ -92,7 +95,7 @@ describe('navigation hooks', () => {
     })
 
     await act(async () => {
-      router?.replace('/about')
+      router?.replace(pageRoutes.about.href())
     })
 
     await act(async () => {

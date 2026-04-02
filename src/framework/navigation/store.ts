@@ -102,6 +102,7 @@ export function startNavigationEvents() {
     if (
       link &&
       link instanceof HTMLAnchorElement &&
+      link.hasAttribute('data-route-link') &&
       link.href &&
       (!link.target || link.target === '_self') &&
       link.origin === location.origin &&

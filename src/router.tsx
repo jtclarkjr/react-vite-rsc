@@ -1,30 +1,36 @@
 import type { ReactNode } from 'react'
+import {
+  pageRouteDefinitions,
+  type PageRouteParams as GeneratedPageRouteParams,
+  type PageRoutePattern
+} from '@/page-routes.generated.ts'
 
-export type RouteParams = Record<string, string>
+export type RoutePattern = PageRoutePattern
+export type RouteParams<P extends RoutePattern = RoutePattern> = GeneratedPageRouteParams<P>
 
-export type PageProps = {
-  params: RouteParams
+export type PageProps<P extends RoutePattern = RoutePattern> = {
+  params: RouteParams<P>
   url: URL
 }
 
-export type RouteModule = {
-  default: (props: PageProps) => Promise<ReactNode> | ReactNode
+export type RouteModule<P extends RoutePattern = RoutePattern> = {
+  default: (props: PageProps<P>) => Promise<ReactNode> | ReactNode
 }
 
-type MatchedRoute = {
-  module: RouteModule
-  params: RouteParams
+export type MatchedRoute<P extends RoutePattern = RoutePattern> = {
+  module: RouteModule<P>
+  params: RouteParams<P>
+  pattern: P
 }
 
 const routeModules = import.meta.glob<RouteModule>('./routes/**/page.tsx', {
   eager: true
 })
 
-const routes = Object.entries(routeModules)
-  .map(([file, module]) => ({
-    file,
-    module,
-    segments: toRouteSegments(file)
+const routes = pageRouteDefinitions
+  .map((definition) => ({
+    ...definition,
+    module: routeModules[definition.file] as RouteModule<typeof definition.pattern>
   }))
   .sort((a, b) => compareSpecificity(a.segments, b.segments))
 
@@ -32,11 +38,12 @@ export function resolveRoute(url: URL): MatchedRoute | null {
   const pathnameSegments = getPathSegments(url.pathname)
 
   for (const route of routes) {
-    const params = matchSegments(route.segments, pathnameSegments)
+    const params = matchSegments(route.pattern, route.segments, pathnameSegments)
     if (params) {
       return {
         module: route.module,
-        params
+        params,
+        pattern: route.pattern
       }
     }
   }
@@ -44,24 +51,20 @@ export function resolveRoute(url: URL): MatchedRoute | null {
   return null
 }
 
-function toRouteSegments(file: string): string[] {
-  const normalized = file
-    .replace('./routes/', '')
-    .replace(/page\.tsx$/, '')
-    .replace(/\/$/, '')
-  return getPathSegments(normalized)
-}
-
 function getPathSegments(pathname: string): string[] {
   return pathname.split('/').filter(Boolean)
 }
 
-function matchSegments(routeSegments: string[], pathnameSegments: string[]): RouteParams | null {
+function matchSegments<P extends RoutePattern>(
+  _pattern: P,
+  routeSegments: readonly string[],
+  pathnameSegments: string[]
+): RouteParams<P> | null {
   if (routeSegments.length !== pathnameSegments.length) {
     return null
   }
 
-  const params: RouteParams = {}
+  const params: Record<string, string> = {}
 
   for (const [index, routeSegment] of routeSegments.entries()) {
     const pathnameSegment = pathnameSegments[index]
@@ -80,10 +83,10 @@ function matchSegments(routeSegments: string[], pathnameSegments: string[]): Rou
     }
   }
 
-  return params
+  return params as RouteParams<P>
 }
 
-function compareSpecificity(a: string[], b: string[]) {
+function compareSpecificity(a: readonly string[], b: readonly string[]) {
   const max = Math.max(a.length, b.length)
 
   for (let index = 0; index < max; index += 1) {

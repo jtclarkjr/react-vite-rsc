@@ -58,6 +58,7 @@ describe('navigation-store', () => {
     const unsubscribe = subscribeToLocationChanges(listener)
     const link = document.createElement('a')
 
+    link.setAttribute('data-route-link', '')
     link.href = '/blog/example-slug'
     link.textContent = 'Blog'
     document.body.append(link)
@@ -66,6 +67,24 @@ describe('navigation-store', () => {
 
     expect(listener).toHaveBeenCalledTimes(1)
     expect(getLocationSnapshot().pathname).toBe('/blog/example-slug')
+
+    link.remove()
+    unsubscribe()
+  })
+
+  it('ignores same-origin anchors that are not page-route links', () => {
+    const listener = vi.fn()
+    const unsubscribe = subscribeToLocationChanges(listener)
+    const link = document.createElement('a')
+
+    link.href = '/api/demo/request'
+    link.textContent = 'API'
+    document.body.append(link)
+
+    link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
+
+    expect(listener).not.toHaveBeenCalled()
+    expect(getLocationSnapshot().pathname).toBe('/api/demo/request')
 
     link.remove()
     unsubscribe()

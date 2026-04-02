@@ -1,10 +1,11 @@
 import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
 import { Input } from '@/components/ui/input.tsx'
+import { pageRoutes } from '@/page-routes.generated.ts'
 import type { PageProps } from '@/router.tsx'
 
-export default function LoginPage(props: PageProps) {
-  const redirectTarget = props.url.searchParams.get('redirect') ?? '/dashboard'
+export default function LoginPage(props: PageProps<'/login'>) {
+  const redirectTarget = props.url.searchParams.get('redirect') ?? pageRoutes.dashboard.href()
 
   return (
     <section className="grid gap-6">

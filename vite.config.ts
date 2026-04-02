@@ -4,15 +4,80 @@ import rsc from '@vitejs/plugin-rsc'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { nitro } from 'nitro/vite'
+import type { Plugin } from 'vite-plus'
+// @ts-expect-error local config-time generator script is loaded via ESM
+import { generatePageRoutes } from './scripts/generate-page-routes.mjs'
 import { defineConfig } from 'vite-plus'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
+const routesDir = path.resolve(dirname, './src/routes')
 const isVitest = process.env.VITEST === 'true'
 const useNitro = !isVitest
 const isProductionBuild = process.argv.includes('build') && !isVitest
 // Nitro owns HTTP routing in both dev and prod. Keep the RSC and SSR environments on the
 // development runtime unless we are doing a production build.
 const nodeEnv = JSON.stringify(isProductionBuild ? 'production' : 'development')
+
+await generatePageRoutes()
+
+function pageRoutesManifestPlugin(): Plugin {
+  let queuedRun = Promise.resolve()
+
+  function enqueueGeneration(onChanged?: () => void) {
+    queuedRun = queuedRun.then(async () => {
+      const result = await generatePageRoutes()
+      if (result.changed) {
+        onChanged?.()
+      }
+    })
+
+    return queuedRun
+  }
+
+  function isRoutePageFile(file: string) {
+    const resolvedFile = path.resolve(file)
+    return (
+      path.basename(resolvedFile) === 'page.tsx' &&
+      (resolvedFile === path.join(routesDir, 'page.tsx') ||
+        resolvedFile.startsWith(`${routesDir}${path.sep}`))
+    )
+  }
+
+  return {
+    apply: 'serve',
+    name: 'page-routes-manifest',
+    async configureServer(server) {
+      await enqueueGeneration()
+
+      const rerender = () => {
+        server.ws.send({ type: 'full-reload' })
+      }
+
+      const onAdd = (file: string) => {
+        if (!isRoutePageFile(file)) {
+          return
+        }
+
+        void enqueueGeneration(rerender)
+      }
+      const onUnlink = (file: string) => {
+        if (!isRoutePageFile(file)) {
+          return
+        }
+
+        void enqueueGeneration(rerender)
+      }
+
+      server.watcher.on('add', onAdd)
+      server.watcher.on('unlink', onUnlink)
+
+      return () => {
+        server.watcher.off('add', onAdd)
+        server.watcher.off('unlink', onUnlink)
+      }
+    }
+  }
+}
 
 export default defineConfig({
   staged: {
@@ -31,6 +96,7 @@ export default defineConfig({
   },
   plugins: [
     ...(useNitro ? [nitro()] : []),
+    pageRoutesManifestPlugin(),
     tailwindcss(),
     rsc({
       serverHandler: false

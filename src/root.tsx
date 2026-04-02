@@ -1,4 +1,6 @@
 import { AppShell } from '@/components/app-shell.tsx'
+import { PageLink } from '@/framework/page-link.tsx'
+import { pageRoutes } from '@/page-routes.generated.ts'
 import { resolveRoute } from '@/router.tsx'
 import './index.css'
 
@@ -46,12 +48,12 @@ function NotFoundPage(props: { url: URL }) {
         <p className="m-0 mb-4 text-base text-foreground">
           Add or rename files in <code>src/routes</code> to extend the route map.
         </p>
-        <a
-          href="/"
+        <PageLink
+          href={pageRoutes.home.href()}
           className="inline-flex h-10 items-center justify-center rounded-md border border-border bg-background px-4 text-sm font-medium text-foreground transition-colors hover:bg-accent"
         >
           Back home
-        </a>
+        </PageLink>
       </div>
     </section>
   )

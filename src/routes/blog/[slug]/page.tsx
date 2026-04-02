@@ -3,7 +3,7 @@ import { getBlogNotes } from '@/features/blog/repository.ts'
 import { BlogActionForm } from '@/features/blog/blog-action-form.tsx'
 import type { PageProps } from '@/router.tsx'
 
-export default function DynamicBlogPage(props: PageProps) {
+export default function DynamicBlogPage(props: PageProps<'/blog/[slug]'>) {
   const { slug } = props.params
   const notes = getBlogNotes(slug)
 

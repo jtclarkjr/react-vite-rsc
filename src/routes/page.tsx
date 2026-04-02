@@ -1,4 +1,6 @@
 import { StarterHomeClient } from '@/components/starter-home-client.tsx'
+import { PageLink } from '@/framework/page-link.tsx'
+import { pageRoutes } from '@/page-routes.generated.ts'
 import { createStarterAppState } from '@/features/starter/state.ts'
 
 export default function HomePage() {
@@ -17,16 +19,19 @@ export default function HomePage() {
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
           Try a dynamic route like{' '}
-          <a href="/blog/example-slug" className="text-foreground underline">
+          <PageLink
+            href={pageRoutes.blogSlug.href({ slug: 'example-slug' })}
+            className="text-foreground underline"
+          >
             /blog/example-slug
-          </a>{' '}
+          </PageLink>{' '}
           to see route params resolved from the filesystem and a server action example.
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
           Nitro also powers a protected page demo at{' '}
-          <a href="/dashboard" className="text-foreground underline">
+          <PageLink href={pageRoutes.dashboard.href()} className="text-foreground underline">
             /dashboard
-          </a>{' '}
+          </PageLink>{' '}
           and an API demo at{' '}
           <a href="/api/demo/request" className="text-foreground underline">
             /api/demo/request

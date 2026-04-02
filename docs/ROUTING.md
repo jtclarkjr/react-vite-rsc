@@ -15,6 +15,11 @@ The routing system has three parts:
 
 The key pieces are:
 
+- `scripts/generate-page-routes.mjs`
+  - Scans `src/routes/**/page.tsx`
+  - Generates the typed page-route manifest
+- `src/page-routes.generated.ts`
+  - Exports route patterns, param types, and `pageRoutes.*.href()` builders
 - `server/renderer.ts`
   - Handles document requests through Nitro
 - `server/routes/_rsc`
@@ -38,6 +43,9 @@ The key pieces are:
   - Re-fetches the RSC payload after navigation and refreshes
 - `src/framework/navigation/index.ts`
   - Exposes client hooks like `useRouter()`, `usePathname()`, and `useSearchParams()`
+- `src/framework/page-link.tsx`
+  - Wraps `<a>` with a typed `href`
+  - Marks page-route links for client-side interception
 
 ## File-Based Route Conventions
 
@@ -62,13 +70,45 @@ Rules:
 Static routes are matched before dynamic routes at the same level, so a literal segment wins over
 `[param]`.
 
+## Route Manifest
+
+Page-route types are generated from the filesystem into `src/page-routes.generated.ts`.
+
+You should not need to generate it by hand during normal development.
+
+The manifest refreshes automatically:
+
+- during `vp install` through the `prepare` script
+- when Vite loads `vite.config.ts`
+- while the dev server is running when page route files are added or removed
+
+The generated file exports:
+
+- `pageRouteDefinitions`
+  - the discovered route table
+- `PageRoutePattern`
+  - the union of route patterns such as `'/' | '/about' | '/blog/[slug]'`
+- `PageRouteParams<'/blog/[slug]'>`
+  - the param object for a given route pattern
+- `pageRoutes.blogSlug.href({ slug: 'example' })`
+  - a typed href builder for navigation
+
+Do not edit `src/page-routes.generated.ts` directly. Treat it as generated output from
+`scripts/generate-page-routes.mjs`.
+
+If you ever need to force a manual refresh, use:
+
+```sh
+vp run routes:generate
+```
+
 ## Route Module Contract
 
 Route modules export a default component. The router passes:
 
 ```ts
-type PageProps = {
-  params: Record<string, string>
+type PageProps<P extends RoutePattern = RoutePattern> = {
+  params: RouteParams<P>
   url: URL
 }
 ```
@@ -78,7 +118,7 @@ You can import `PageProps` from `@/router.tsx` when you want the explicit type:
 ```tsx
 import type { PageProps } from '@/router.tsx'
 
-export default function BlogPage(props: PageProps) {
+export default function BlogPage(props: PageProps<'/blog/[slug]'>) {
   return <h1>{props.params.slug}</h1>
 }
 ```
@@ -102,7 +142,7 @@ export default function AboutPage() {
 ```tsx
 import type { PageProps } from '@/router.tsx'
 
-export default function BlogPage(props: PageProps) {
+export default function BlogPage(props: PageProps<'/blog/[slug]'>) {
   const { slug } = props.params
   const view = props.url.searchParams.get('view')
 
@@ -142,9 +182,9 @@ The browser entry:
 
 That means these all work as navigation:
 
-- clicking a normal same-origin link
-- `router.push('/about')`
-- `router.replace('/about?tab=team')`
+- clicking a `PageLink`
+- `router.push(pageRoutes.about.href())`
+- `router.replace(pageRoutes.blogSlug.href({ slug: 'example' }, { search: { view: 'full' } }))`
 - using the browser back and forward buttons
 
 ### Refreshing the Current Route
@@ -185,6 +225,7 @@ Client components can use the hooks in `src/framework/navigation/index.ts`.
 ```tsx
 'use client'
 
+import { pageRoutes } from '@/page-routes.generated.ts'
 import { useRouter } from '@/framework/navigation'
 
 export function Toolbar() {
@@ -192,10 +233,17 @@ export function Toolbar() {
 
   return (
     <div>
-      <button type="button" onClick={() => router.push('/about')}>
+      <button type="button" onClick={() => router.push(pageRoutes.about.href())}>
         Go to about
       </button>
-      <button type="button" onClick={() => router.replace('/about?tab=team')}>
+      <button
+        type="button"
+        onClick={() =>
+          router.replace(
+            pageRoutes.blogSlug.href({ slug: 'example' }, { search: { view: 'full' } })
+          )
+        }
+      >
         Replace URL
       </button>
       <button type="button" onClick={() => router.refresh()}>
@@ -330,15 +378,27 @@ Do not mutate it directly. Update the URL with `router.push()` or `router.replac
 
 ## Navigation Patterns
 
-### Use Normal Links When You Can
+### Use `PageLink` for Page Routes
 
-For most navigation, use plain anchors:
+For application page navigation, use `PageLink` with a generated href:
 
 ```tsx
-<a href="/about">About</a>
+import { PageLink } from '@/framework/page-link.tsx'
+import { pageRoutes } from '@/page-routes.generated.ts'
+;<PageLink href={pageRoutes.about.href()}>About</PageLink>
 ```
 
-This preserves normal browser behavior and still uses client-side navigation for same-origin links.
+This preserves normal anchor behavior while keeping page-route hrefs typed.
+
+### Use Plain Anchors for Non-Page Routes
+
+Keep normal `<a href>` for URLs that are not generated from `src/routes`, such as:
+
+- Nitro API routes like `/api/demo/request`
+- auth handlers like `/auth/login`
+- external links
+
+Only typed page-route links are marked for client-side interception.
 
 ### Use `useRouter()` for Non-Link Interactions
 
@@ -347,13 +407,17 @@ Use the router hook for buttons, menus, keyboard shortcuts, or other imperative 
 ```tsx
 'use client'
 
+import { pageRoutes } from '@/page-routes.generated.ts'
 import { useRouter } from '@/framework/navigation'
 
 export function OpenPostButton(props: { slug: string }) {
   const router = useRouter()
 
   return (
-    <button type="button" onClick={() => router.push(`/blog/${props.slug}`)}>
+    <button
+      type="button"
+      onClick={() => router.push(pageRoutes.blogSlug.href({ slug: props.slug }))}
+    >
       Open post
     </button>
   )
@@ -389,8 +453,11 @@ router by default.
 ## Quick Reference
 
 - Add a new route by creating `src/routes/.../page.tsx`
-- Read route params and query strings in server pages through `PageProps`
-- Use plain `<a href>` for normal navigation
+- Route manifest updates automatically during install, dev, and config load
+- Use `vp run routes:generate` only as a manual escape hatch
+- Read route params and query strings in server pages through `PageProps<'/route'>`
+- Use `PageLink` plus `pageRoutes.*.href()` for page navigation
+- Use plain `<a href>` for API, auth, or external navigation
 - Use `useRouter()` only in client components for imperative navigation
 - Use `usePathname()` and `useSearchParams()` for client-side reads
 - Use `router.refresh()` to re-run the current RSC render without a full page reload
