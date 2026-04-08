@@ -12,7 +12,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Dashboard' }
 ]
 
-export function AppShell(props: { children: ReactNode; pathname: string }) {
+export function Layout(props: { children: ReactNode; pathname: string }) {
   return (
     <div className="min-h-screen">
       <header className="border-b border-border/70 bg-background/85 backdrop-blur">

@@ -1,4 +1,4 @@
-import { AppShell } from '@/components/app-shell.tsx'
+import { Layout } from '@/layout'
 import { resolveRoute } from '@/router.tsx'
 import './index.css'
 
@@ -14,7 +14,7 @@ export async function Root(props: { url: URL }) {
         <title>React RSC Starter</title>
       </head>
       <body>
-        <AppShell pathname={props.url.pathname}>{page}</AppShell>
+        <Layout pathname={props.url.pathname}>{page}</Layout>
       </body>
     </html>
   )
