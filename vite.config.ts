@@ -16,9 +16,19 @@ const nodeEnv = JSON.stringify(isProductionBuild ? 'production' : 'development')
 
 export default defineConfig({
   staged: {
-    '*': 'vp check --fix'
+    '*.{js,jsx,ts,tsx,mjs,cjs}': 'vp check --fix'
   },
   lint: { options: { typeAware: true, typeCheck: true } },
+  fmt: {
+    semi: false,
+    tabWidth: 2,
+    singleQuote: true,
+    printWidth: 100,
+    trailingComma: 'none',
+    proseWrap: 'always',
+    sortPackageJson: false,
+    ignorePatterns: ['AGENTS.md', 'storybook-static/**']
+  },
   test: {
     includeSource: ['src/**/*.{ts,tsx}'],
     setupFiles: ['./vitest.setup.ts']
