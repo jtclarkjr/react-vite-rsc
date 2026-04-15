@@ -18,7 +18,12 @@ export default defineConfig({
   staged: {
     '*.{js,jsx,ts,tsx,mjs,cjs}': 'vp check --fix'
   },
-  lint: { options: { typeAware: true, typeCheck: true } },
+  lint: {
+    rules: {
+      'no-nested-ternary': 'error'
+    },
+    options: { typeAware: true, typeCheck: true }
+  },
   fmt: {
     semi: false,
     tabWidth: 2,
