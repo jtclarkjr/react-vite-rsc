@@ -13,12 +13,12 @@ export async function fetch(request: Request) {
     'rsc',
     'index'
   )
-  const rscFetch =
-    typeof rscEntryModule.fetch === 'function'
-      ? rscEntryModule.fetch
-      : typeof rscEntryModule.default?.fetch === 'function'
-        ? rscEntryModule.default.fetch
-        : undefined
+  let rscFetch: typeof rscEntryModule.fetch | undefined
+  if (typeof rscEntryModule.fetch === 'function') {
+    rscFetch = rscEntryModule.fetch
+  } else if (typeof rscEntryModule.default?.fetch === 'function') {
+    rscFetch = rscEntryModule.default.fetch
+  }
 
   if (!rscFetch) {
     throw new TypeError('RSC entry did not expose a fetch handler')
