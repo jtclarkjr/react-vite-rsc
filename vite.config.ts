@@ -44,8 +44,10 @@ export default defineConfig({
       '@server': path.resolve(dirname, './server')
     }
   },
+  // updated version of vite broke Plugin type for existing plugins
+  // @ts-ignore TS2321: excessive stack depth from recursive Plugin<any> generics
   plugins: [
-    ...(useNitro ? [nitro()] : []),
+    ...(useNitro ? nitro() : []),
     tailwindcss(),
     rsc({
       serverHandler: false
