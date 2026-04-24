@@ -2,7 +2,9 @@
 
 This is a minimal React 19 starter that keeps low-level React Server Components on top of Vite+
 while using Nitro as the HTTP runtime. The app still resolves pages from `src/routes/**/page.tsx`,
-but Nitro now owns document requests, internal RSC endpoints, and the production server output.
+but Nitro now owns document requests, internal RSC endpoints, and the production server output. The
+starter also supports importing React-targeted `.tsrx` modules from existing TS/TSX files for
+component-level TSRX adoption without changing the route layer.
 
 This setup combines:
 
@@ -97,6 +99,8 @@ for the underlying RSC documentation.
 
 - [`src/framework/entry.{browser,rsc,ssr}.tsx`](./src/framework) provides the low-level RSC
   integration points with inline comments.
+- TSRX component modules can now live alongside the rest of the app, for example
+  `src/components/tsrx-showcase.tsrx`, while route files still remain `src/routes/**/page.tsx`.
 - See [`docs/ROUTING.md`](./docs/ROUTING.md) for the full routing guide, including page modules,
   Nitro endpoints, and client navigation behavior.
 - The original base for this repo was scaffolded with `vp create vite` using the `React` -> `RSC`

@@ -1,4 +1,5 @@
 import tailwindcss from '@tailwindcss/vite'
+import tsrxReact from '@tsrx/vite-plugin-react'
 import react from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
 import path from 'node:path'
@@ -52,6 +53,7 @@ export default defineConfig({
     rsc({
       serverHandler: false
     }),
+    tsrxReact(),
 
     // use any of react plugins https://github.com/vitejs/vite-plugin-react
     // to enable client component HMR
