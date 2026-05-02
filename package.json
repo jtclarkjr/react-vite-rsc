@@ -23,12 +23,12 @@
     "react-dom": "^19.2.5",
     "rsc-html-stream": "^0.0.7",
     "tailwind-merge": "^3.5.0",
-    "zod": "^4.3.6"
+    "zod": "^4.4.2"
   },
   "devDependencies": {
-    "@storybook/addon-docs": "^10.3.5",
-    "@storybook/addon-vitest": "^10.3.5",
-    "@storybook/react-vite": "^10.3.5",
+    "@storybook/addon-docs": "^10.3.6",
+    "@storybook/addon-vitest": "^10.3.6",
+    "@storybook/react-vite": "^10.3.6",
     "@tailwindcss/vite": "^4.2.4",
     "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
@@ -37,12 +37,12 @@
     "@vitejs/plugin-rsc": "^0.5.25",
     "@vitest/browser-playwright": "^4.1.5",
     "happy-dom": "^20.9.0",
-    "nitro": "3.0.260415-beta",
+    "nitro": "3.0.260429-beta",
     "playwright": "^1.59.1",
-    "storybook": "^10.3.5",
+    "storybook": "^10.3.6",
     "tailwindcss": "^4.2.4",
-    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.19",
-    "vite-plus": "^0.1.19"
+    "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.20",
+    "vite-plus": "^0.1.20"
   },
   "overrides": {
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
