@@ -21,7 +21,8 @@ Install `vp` from the [Vite+ site](https://viteplus.dev/) before running project
 curl -fsSL https://vite.plus | bash
 ```
 
-Use Vite+ commands directly with `vp`.
+Use Vite+ commands directly with `vp` when running on the host. For dependency isolation, prefer the
+Docker sandbox workflow below.
 
 ```sh
 # install dependencies and run vite+ config
@@ -43,6 +44,31 @@ vp test
 vp build
 vp preview
 ```
+
+## Docker Dependency Sandbox
+
+Prefer running package installs and dependency-backed commands in Docker when working with untrusted
+or newly updated npm packages. The Compose dev profile keeps `node_modules` in a Docker volume,
+mounts this repo read-only, disables install lifecycle scripts, and serves the app on a Docker
+internal network with only `127.0.0.1:3000` exposed to the host.
+
+```sh
+# install dependencies into the Docker node_modules volume and start dev
+docker compose --profile dev up dev
+
+# run dependency-backed checks without outbound network access
+docker compose --profile dev run --rm sandbox vp check
+docker compose --profile dev run --rm sandbox vp test
+
+# refresh the sandboxed node_modules volume after lockfile changes
+docker compose --profile dev run --rm dev-deps
+```
+
+The first dependency install still needs registry network access, but `bunfig.toml` and the Compose
+command both keep lifecycle scripts disabled. After dependencies are installed, use the `sandbox`
+service for commands that do not need the network. This does not make npm packages trustworthy, but
+it reduces the chance that package code can write to the host checkout, persist in host
+`node_modules`, or exfiltrate over the network during normal checks and tests.
 
 ## Runtime Overview
 

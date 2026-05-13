@@ -1,3 +1,35 @@
+x-dev-sandbox: &dev-sandbox
+  build:
+    context: .
+    dockerfile: Dockerfile
+    target: base
+  image: react-vite-rsc:dev-sandbox
+  working_dir: /app
+  init: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  read_only: true
+  tmpfs:
+    - /tmp
+    - /root/.cache
+    - /root/.vite-plus/cache
+  environment:
+    NODE_ENV: development
+    PORT: 3000
+  volumes:
+    - type: bind
+      source: .
+      target: /app
+      read_only: true
+    - type: volume
+      source: dev-node-modules
+      target: /app/node_modules
+    - type: volume
+      source: dev-bun-cache
+      target: /root/.bun/install/cache
+
 services:
   app:
     build:
@@ -11,16 +43,49 @@ services:
       - '3000:3000'
     restart: unless-stopped
 
-  app-dev:
+  dev-deps:
+    <<: *dev-sandbox
     profiles:
       - dev
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: preview
-    environment:
-      PORT: 3000
-    image: react-vite-rsc:preview
+    command:
+      - vp
+      - install
+      - --frozen-lockfile
+      - --ignore-scripts
+
+  dev:
+    <<: *dev-sandbox
+    profiles:
+      - dev
+    depends_on:
+      dev-deps:
+        condition: service_completed_successfully
+    command:
+      - vp
+      - dev
+      - --host
+      - 0.0.0.0
+      - --port
+      - '3000'
+      - --strictPort
+    networks:
+      - dev-sandbox
     ports:
-      - '3001:3000'
-    restart: unless-stopped
+      - '127.0.0.1:3000:3000'
+
+  sandbox:
+    <<: *dev-sandbox
+    profiles:
+      - dev
+    command:
+      - vp
+      - test
+    network_mode: none
+
+networks:
+  dev-sandbox:
+    internal: true
+
+volumes:
+  dev-node-modules:
+  dev-bun-cache:
