@@ -18,13 +18,13 @@ RUN curl -fsSL https://vite.plus | bash \
 
 FROM base AS deps
 
-COPY package.json bun.lock ./
+COPY package.json bun.lock bunfig.toml ./
 
 RUN vp install --prod --frozen-lockfile --ignore-scripts
 
 FROM base AS build
 
-COPY package.json bun.lock ./
+COPY package.json bun.lock bunfig.toml ./
 
 RUN vp install --frozen-lockfile --ignore-scripts
 
