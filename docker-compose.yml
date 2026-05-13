@@ -27,6 +27,9 @@ x-dev-sandbox: &dev-sandbox
       source: dev-node-modules
       target: /app/node_modules
     - type: volume
+      source: dev-output
+      target: /app/.output
+    - type: volume
       source: dev-bun-cache
       target: /root/.bun/install/cache
 
@@ -88,4 +91,5 @@ networks:
 
 volumes:
   dev-node-modules:
+  dev-output:
   dev-bun-cache:

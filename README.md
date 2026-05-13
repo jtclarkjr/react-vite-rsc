@@ -48,9 +48,9 @@ vp preview
 ## Docker Dependency Sandbox
 
 Prefer running package installs and dependency-backed commands in Docker when working with untrusted
-or newly updated npm packages. The Compose dev profile keeps `node_modules` in a Docker volume,
-mounts this repo read-only, disables install lifecycle scripts, and serves the app on a Docker
-internal network with only `127.0.0.1:3000` exposed to the host.
+or newly updated npm packages. The Compose dev profile keeps `node_modules` and generated output in
+Docker volumes, mounts this repo read-only, disables install lifecycle scripts, and serves the app
+on a Docker internal network with only `127.0.0.1:3000` exposed to the host.
 
 ```sh
 # install dependencies into the Docker node_modules volume and start dev
