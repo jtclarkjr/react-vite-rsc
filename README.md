@@ -45,6 +45,11 @@ vp build
 vp preview
 ```
 
+## Graphify
+
+See [`docs/GRAPHIFY.md`](./docs/GRAPHIFY.md) for optional local knowledge-graph setup. Graphify is
+installed separately with `pip install graphifyy`, then refreshed with `vp run graphify:update`.
+
 ## Docker Dependency Sandbox
 
 Prefer running package installs and dependency-backed commands in Docker when working with untrusted
