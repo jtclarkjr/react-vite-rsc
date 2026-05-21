@@ -13,3 +13,8 @@ AGENTS.md
 CLAUDE.md
 .vercel
 .env*.local
+*.tsbuildinfo
+.DS_Store
+
+# Remove if wanting to commit graphify
+graphify-out/

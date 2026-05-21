@@ -12,7 +12,10 @@
     "storybook:ci": "vp exec storybook dev -p 6006 --ci --no-open",
     "build-storybook": "vp exec storybook build --output-dir /tmp/react-vite-rsc-storybook-static",
     "test:storybook": "vp test run --config vitest.storybook.config.ts --project storybook",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "graphify:root": "node scripts/graphify-root.mjs",
+    "graphify:setup": "vp run graphify:root",
+    "graphify:update": "vp run graphify:root && graphify update . --force && graphify export callflow-html && vp run graphify:root"
   },
   "dependencies": {
     "@nanostores/react": "^1.1.0",
