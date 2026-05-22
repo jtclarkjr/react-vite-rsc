@@ -32,7 +32,7 @@ export default defineConfig({
     trailingComma: 'none',
     proseWrap: 'always',
     sortPackageJson: false,
-    ignorePatterns: ['AGENTS.md', 'storybook-static/**']
+    ignorePatterns: ['*.md', 'storybook-static/**']
   },
   test: {
     includeSource: ['src/**/*.{ts,tsx}'],
