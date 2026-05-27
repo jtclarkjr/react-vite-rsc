@@ -35,6 +35,34 @@ vp run graphify:update
 This refreshes the AST-only graph and exports the call-flow HTML. Run it after code changes when you
 want the local graph to stay current.
 
+## Troubleshooting
+
+If Graphify fails with a cache initialization error such as:
+
+```text
+Failed to initialize cache: Unrecognized database version: 12
+```
+
+or:
+
+```text
+Failed to initialize cache at `/Users/<user>/.cache/uv`
+```
+
+the problem is usually uv's package cache, not this repo's `graphify-out/` cache. Clear uv's cache
+and rerun Graphify:
+
+```sh
+uv cache clean
+graphify update .
+```
+
+If running Graphify through `uvx`, use the package's provided executable name:
+
+```sh
+uvx --from graphifyy graphify update .
+```
+
 ## Optional Agent Integration
 
 Install the Graphify integration for the coding agent you use:
