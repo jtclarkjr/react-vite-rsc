@@ -27,4 +27,3 @@ graphify-out/
 .env.*
 !.env.example
 void.lock.json
-void.config.ts
