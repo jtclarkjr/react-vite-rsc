@@ -13,7 +13,7 @@ export default function HomePage() {
         </h1>
         <p className="m-0 max-w-3xl text-lg leading-8 text-muted-foreground">
           This starter keeps file-based routes, React Server Components, SSR-friendly state
-          hydration, shadcn/ui primitives, and Vite+ workflows without adding app-specific API code.
+          hydration, shadcn/ui primitives, and typed Void APIs on Cloudflare Workers.
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
           Try a dynamic route like{' '}
@@ -23,7 +23,7 @@ export default function HomePage() {
           to see route params resolved from the filesystem and a server action example.
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
-          Nitro also powers a protected page demo at{' '}
+          Void also powers a protected page demo at{' '}
           <a href="/dashboard" className="text-foreground underline">
             /dashboard
           </a>{' '}
@@ -31,7 +31,7 @@ export default function HomePage() {
           <a href="/api/demo/request" className="text-foreground underline">
             /api/demo/request
           </a>
-          , both of which are logged by a Nitro request plugin.
+          , both of which are logged by request middleware.
         </p>
       </div>
 

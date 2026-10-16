@@ -5,6 +5,7 @@ x-dev-sandbox: &dev-sandbox
     target: base
   image: react-vite-rsc:dev-sandbox
   working_dir: /app
+  entrypoint: ['/bin/bash', '/usr/local/bin/docker-sandbox']
   init: true
   cap_drop:
     - ALL
@@ -12,49 +13,67 @@ x-dev-sandbox: &dev-sandbox
     - no-new-privileges:true
   read_only: true
   tmpfs:
+    - /app
     - /tmp
     - /root/.cache
-    - /root/.vite-plus/cache
+    - /root/.config/.wrangler
   environment:
     NODE_ENV: development
     PORT: 3000
   volumes:
     - type: bind
       source: .
-      target: /app
+      target: /source
       read_only: true
+    - ./src:/app/src:ro
+    - ./routes:/app/routes:ro
+    - ./middleware:/app/middleware:ro
+    - ./server:/app/server:ro
+    - ./db:/app/db:ro
+    - ./public:/app/public:ro
+    - ./.storybook:/app/.storybook:ro
     - type: volume
       source: dev-node-modules
       target: /app/node_modules
     - type: volume
-      source: dev-output
-      target: /app/.output
+      source: dev-void
+      target: /app/.void
+    - type: volume
+      source: dev-wrangler
+      target: /app/.wrangler
+    - type: volume
+      source: dev-dist
+      target: /app/dist
     - type: volume
       source: dev-bun-cache
       target: /root/.bun/install/cache
 
 services:
-  app:
+  preview:
     build:
       context: .
       dockerfile: Dockerfile
+      target: preview
+    profiles:
+      - preview
     environment:
       NODE_ENV: production
       PORT: 3000
-    image: react-vite-rsc:latest
+    image: react-vite-rsc:preview
+    volumes:
+      - preview-void:/app/.void
+      - preview-wrangler:/app/.wrangler
     ports:
-      - '3000:3000'
-    restart: unless-stopped
+      - '127.0.0.1:3000:3000'
 
   dev-deps:
     <<: *dev-sandbox
     profiles:
       - dev
     command:
-      - vp
-      - install
-      - --frozen-lockfile
-      - --ignore-scripts
+      - /bin/bash
+      - -c
+      - vp install --frozen-lockfile --ignore-scripts && vp exec void prepare
 
   dev:
     <<: *dev-sandbox
@@ -63,6 +82,8 @@ services:
     depends_on:
       dev-deps:
         condition: service_completed_successfully
+      dev-proxy:
+        condition: service_started
     command:
       - vp
       - dev
@@ -72,6 +93,25 @@ services:
       - '3000'
       - --strictPort
     networks:
+      - dev-sandbox
+
+  dev-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: base
+    image: react-vite-rsc:dev-sandbox
+    profiles:
+      - dev
+    command: ['node', '/usr/local/bin/docker-dev-proxy.mjs']
+    init: true
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    networks:
+      - default
       - dev-sandbox
     ports:
       - '127.0.0.1:3000:3000'
@@ -86,10 +126,15 @@ services:
     network_mode: none
 
 networks:
+  default:
   dev-sandbox:
     internal: true
 
 volumes:
   dev-node-modules:
-  dev-output:
+  dev-void:
+  dev-wrangler:
+  dev-dist:
   dev-bun-cache:
+  preview-void:
+  preview-wrangler:

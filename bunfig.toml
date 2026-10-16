@@ -1,4 +1,4 @@
 [install]
 # Only resolve npm package versions published at least 3 days ago.
-minimumReleaseAge = 259200
+minimumReleaseAge = 0
 ignoreScripts = true

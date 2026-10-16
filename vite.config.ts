@@ -1,20 +1,16 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import rsc from '@vitejs/plugin-rsc'
+import { rmSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { nitro } from 'nitro/vite'
 import { defineConfig } from 'vite-plus'
+import { voidPlugin } from 'void'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const isVitest = process.env.VITEST === 'true'
-const useNitro = !isVitest
-const isProductionBuild = process.argv.includes('build') && !isVitest
-// Nitro owns HTTP routing in both dev and prod. Keep the RSC and SSR environments on the
-// development runtime unless we are doing a production build.
-const nodeEnv = JSON.stringify(isProductionBuild ? 'production' : 'development')
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   staged: {
     '*.{js,jsx,ts,tsx,mjs,cjs}': 'vp check --fix'
   },
@@ -35,24 +31,34 @@ export default defineConfig({
     ignorePatterns: ['*.md', 'storybook-static/**']
   },
   test: {
-    includeSource: ['src/**/*.{ts,tsx}'],
+    includeSource: ['src/**/*.{ts,tsx}', 'server/lib/**/*.ts'],
+    exclude: ['**/node_modules/**', '**/dist/**', '**/tests/e2e/**', '**/.claude/**'],
     setupFiles: ['./vitest.setup.ts']
   },
   resolve: {
     alias: {
       '@': path.resolve(dirname, './src'),
-      '@server': path.resolve(dirname, './server')
+      '@server': path.resolve(dirname, './server'),
+      '@schema': path.resolve(dirname, './db/schema.ts')
     }
   },
-  // updated version of vite broke Plugin type for existing plugins
-  // @ts-ignore TS2321: excessive stack depth from recursive Plugin<any> generics
   plugins: [
-    ...(useNitro ? nitro() : []),
+    ...(!isVitest
+      ? [
+          voidPlugin({ workerChildEnvironments: ['rsc', 'ssr'] }),
+          {
+            name: 'clean-void-worker-output',
+            buildApp: {
+              order: 'pre' as const,
+              handler() {
+                rmSync(path.resolve(dirname, 'dist/ssr'), { recursive: true, force: true })
+              }
+            }
+          },
+          rsc({ serverHandler: false })
+        ]
+      : []),
     tailwindcss(),
-    rsc({
-      serverHandler: false
-    }),
-
     // use any of react plugins https://github.com/vitejs/vite-plugin-react
     // to enable client component HMR
     react()
@@ -65,15 +71,22 @@ export default defineConfig({
   // specify entry point for each environment.
   // (currently the plugin assumes `rolldownOptions.input.index` for some features.)
   environments: {
+    void_worker: {
+      build: {
+        outDir: 'dist/ssr',
+        emptyOutDir: false
+      }
+    },
     // `rsc` environment loads modules with `react-server` condition.
     // this environment is responsible for:
     // - RSC stream serialization (React VDOM -> RSC stream)
     // - server functions handling
     rsc: {
       define: {
-        'process.env.NODE_ENV': nodeEnv
+        'process.env.NODE_ENV': JSON.stringify(command === 'build' ? 'production' : 'development')
       },
       build: {
+        outDir: 'dist/ssr/rsc',
         minify: true,
         rolldownOptions: {
           input: {
@@ -89,9 +102,10 @@ export default defineConfig({
     // - traditional SSR (React VDOM -> HTML string/stream)
     ssr: {
       define: {
-        'process.env.NODE_ENV': nodeEnv
+        'process.env.NODE_ENV': JSON.stringify(command === 'build' ? 'production' : 'development')
       },
       build: {
+        outDir: 'dist/ssr/render',
         minify: true,
         rolldownOptions: {
           input: {
@@ -121,10 +135,10 @@ export default defineConfig({
       build: {
         rolldownOptions: {
           input: {
-            index: './src/framework/entry.browser.tsx'
+            index: './src/main.client.ts'
           }
         }
       }
     }
   }
-})
+}))

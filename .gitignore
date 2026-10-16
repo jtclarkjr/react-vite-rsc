@@ -2,6 +2,8 @@ node_modules
 dist
 .output
 storybook-static
+playwright-report
+test-results
 
 .vscode
 .vite-hooks
@@ -18,3 +20,11 @@ CLAUDE.md
 
 # Remove if wanting to commit graphify
 graphify-out/
+.void
+.wrangler
+.void-wrangler.jsonc
+.env
+.env.*
+!.env.example
+void.lock.json
+void.config.ts

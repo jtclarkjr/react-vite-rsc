@@ -3,9 +3,9 @@ import { getBlogNotes } from '@/features/blog/repository.ts'
 import { BlogActionForm } from '@/features/blog/blog-action-form.tsx'
 import type { PageProps } from '@/router.tsx'
 
-export default function DynamicBlogPage(props: PageProps) {
+export default async function DynamicBlogPage(props: PageProps) {
   const { slug } = props.params
-  const notes = getBlogNotes(slug)
+  const notes = await getBlogNotes(slug)
 
   return (
     <section className="grid gap-6">

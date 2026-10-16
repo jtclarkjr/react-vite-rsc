@@ -11,11 +11,11 @@ export default function LoginPage(props: PageProps) {
       <p className="m-0 text-sm font-bold uppercase tracking-[0.2em] text-primary">Login</p>
       <div className="grid gap-4">
         <h1 className="m-0 text-4xl leading-none font-semibold tracking-tight sm:text-5xl">
-          Demo Nitro auth gate.
+          Demo Void auth gate.
         </h1>
         <p className="m-0 max-w-3xl text-lg leading-8 text-muted-foreground">
-          This page is intentionally simple. Posting the form sets a demo auth cookie through a
-          Nitro route handler, then redirects back to the protected page route.
+          This page is intentionally simple. Posting the form sets a demo auth cookie through a Void
+          route handler, then redirects back to the protected page route.
         </p>
       </div>
 

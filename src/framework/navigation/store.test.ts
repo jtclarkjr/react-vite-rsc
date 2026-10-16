@@ -60,7 +60,7 @@ describe('navigation-store', () => {
 
     link.href = '/blog/example-slug'
     link.textContent = 'Blog'
-    document.body.append(link)
+    document.body.appendChild(link)
 
     link.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }))
 

@@ -10,7 +10,7 @@ export default function DashboardPage() {
           Protected before render.
         </h1>
         <p className="m-0 max-w-3xl text-lg leading-8 text-muted-foreground">
-          Nitro middleware checked the auth cookie before this page route rendered. Without the
+          Void middleware checked the auth cookie before this page route rendered. Without the
           cookie, the request is redirected to <code>/login</code> before the React page module
           runs.
         </p>
@@ -20,7 +20,7 @@ export default function DashboardPage() {
         <CardContent className="grid gap-4">
           <p className="m-0 text-base leading-7 text-foreground">
             Open the server logs and visit <code>/dashboard</code> or <code>/api/demo/request</code>{' '}
-            to see the Nitro request logger classify page and API requests.
+            to see the request logger classify page and API requests.
           </p>
 
           <form action="/auth/logout" method="post">

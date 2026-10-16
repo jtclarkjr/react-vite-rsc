@@ -2,7 +2,7 @@ FROM node:24-bookworm-slim AS base
 
 WORKDIR /app
 
-ENV PATH=/root/.vite-plus/bin:$PATH
+ENV PATH=/root/.local/share/vite-plus/bin:$PATH
 
 RUN apt-get update \
   && apt-get install -y --no-install-recommends curl ca-certificates unzip \
@@ -13,24 +13,23 @@ RUN curl -fsSL https://bun.sh/install | bash \
 
 SHELL ["/bin/bash", "-c"]
 
-RUN curl -fsSL https://vite.plus | bash \
+RUN curl -fsSL https://vite.plus | VP_VERSION=1.3.0 bash \
   && vp --version
 
-FROM base AS deps
-
-COPY package.json bun.lock bunfig.toml ./
-
-RUN vp install --prod --frozen-lockfile --ignore-scripts
+COPY scripts/docker-sandbox.sh /usr/local/bin/docker-sandbox
+COPY scripts/docker-dev-proxy.mjs /usr/local/bin/docker-dev-proxy.mjs
 
 FROM base AS build
 
 COPY package.json bun.lock bunfig.toml ./
+COPY patches ./patches
 
 RUN vp install --frozen-lockfile --ignore-scripts
 
 COPY . .
+COPY void.config.example.ts ./void.config.ts
 
-RUN vp build
+RUN vp exec void prepare && vp build
 
 FROM build AS preview
 
@@ -38,17 +37,4 @@ ENV PORT=3000
 
 EXPOSE 3000
 
-CMD ["vp", "preview", "--host", "0.0.0.0", "--port", "3000", "--strictPort"]
-
-FROM node:24-bookworm-slim AS runtime
-
-ENV NODE_ENV=production
-ENV PORT=3000
-
-WORKDIR /app
-
-COPY --from=build /app/.output ./.output
-
-EXPOSE 3000
-
-CMD ["node", ".output/server/index.mjs"]
+CMD ["/bin/bash", "-c", "vp exec void db migrate && exec vp preview --host 0.0.0.0 --port 3000 --strictPort"]

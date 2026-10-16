@@ -1,6 +1,17 @@
 const ACTION_ROUTE_PREFIX = '/_actions/'
 const RSC_ROUTE_PREFIX = '/_rsc'
 
+export async function fetchRenderResponse(request: Request): Promise<Response | null> {
+  const response = await fetch(request)
+  if (response.redirected) {
+    await response.body?.cancel()
+    window.location.assign(response.url)
+    return null
+  }
+
+  return response
+}
+
 type RenderRequest = {
   actionId?: string
   isAction: boolean
@@ -102,7 +113,7 @@ if (import.meta.vitest) {
   const { describe, expect, it } = import.meta.vitest
 
   describe('createRscRenderRequest', () => {
-    it('builds a Nitro RSC endpoint from the current page URL', () => {
+    it('builds an RSC endpoint from the current page URL', () => {
       const request = createRscRenderRequest('https://example.com/blog/example-slug?draft=1')
 
       expect(request.method).toBe('GET')
@@ -117,7 +128,7 @@ if (import.meta.vitest) {
   })
 
   describe('createServerActionRequest', () => {
-    it('builds a dedicated Nitro action endpoint', () => {
+    it('builds a dedicated action endpoint', () => {
       const request = createServerActionRequest('https://example.com/blog/example-slug?draft=1', {
         id: 'action-123',
         body: '[]'
@@ -131,7 +142,7 @@ if (import.meta.vitest) {
   })
 
   describe('parseRenderRequest', () => {
-    it('normalizes Nitro RSC URLs back to the app URL', () => {
+    it('normalizes RSC URLs back to the app URL', () => {
       const request = new Request('https://example.com/_rsc/blog/example-slug?draft=1')
       const parsed = parseRenderRequest(request)
 
@@ -143,7 +154,7 @@ if (import.meta.vitest) {
       expect(parsed.url.search).toBe('?draft=1')
     })
 
-    it('normalizes Nitro action URLs back to the app URL', () => {
+    it('normalizes action URLs back to the app URL', () => {
       const request = new Request(
         'https://example.com/_actions/action-123?url=%2Fblog%2Fexample-slug%3Fdraft%3D1',
         {

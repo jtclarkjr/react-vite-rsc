@@ -1,0 +1,34 @@
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index c2b8a20bf2316c58128746dcc1e77a86f96765ee..259b3194b7dafcf94e0cefd7b3bcb58efb9cd3df 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -53,6 +53,7 @@ export declare function resolveWorkersAiBindingName(resolvedAi: unknown, configu
+ export declare function voidPlugin(options?: {
+   persistTo?: string;
+   auxiliaryWorkers?: PluginConfig["auxiliaryWorkers"];
++  workerChildEnvironments?: string[];
+ }): Array<Plugin>;
+ //#endregion
+ export { type AuthUser, type BasicAuthOptions, type CloudContext, type CloudContextVariables, type CloudEnv, type Deferred, type DeferredState, type HandlerInput, type HeadDescriptor, type InferProps, type QueueBatch, type QueueMap, type QueueMessage, type QueueRetryOptions, type RenderAssetTags, type TypedHandler, type TypedQueueHandler, type ValidatorSlots, VoidAssetRewriteError, basicAuth, defer, defineHandler, defineHead, defineMiddleware, defineQueue, defineRender, defineScheduled };
+diff --git a/dist/index.mjs b/dist/index.mjs
+index 59b481ea5833b8d5b53a36d9af47eb9dd8f332cf..c3086c90ee3ac4fba6ac473ee7c1f97c24123e3f 100644
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -5377,7 +5377,7 @@ function voidPlugin(options) {
+ 	return [
+ 		createCloudflareBuiltinsExternalPlugin(),
+ 		createDefaultWorkerEnvironmentPlugin(),
+-		createWorkerEnvironmentSanitizerPlugin([DEFAULT_WORKER_ENVIRONMENT_NAME]),
++		createWorkerEnvironmentSanitizerPlugin([DEFAULT_WORKER_ENVIRONMENT_NAME, ...options?.workerChildEnvironments ?? []]),
+ 		createWranglerCompatPersistPlugin(root, config),
+ 		devTriggerSecretGuardPlugin(),
+ 		restartPlugin(),
+@@ -5432,7 +5432,7 @@ function voidPlugin(options) {
+ 			...inspectorPortOption,
+ 			persistState: { path: localD1.persistRoot },
+ 			auxiliaryWorkers: options?.auxiliaryWorkers,
+-			viteEnvironment: { name: DEFAULT_WORKER_ENVIRONMENT_NAME },
++			viteEnvironment: { name: DEFAULT_WORKER_ENVIRONMENT_NAME, childEnvironments: options?.workerChildEnvironments },
+ 			config: mergeBindings
+ 		}),
+ 		implicitDeployGuard

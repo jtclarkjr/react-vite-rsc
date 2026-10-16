@@ -56,7 +56,7 @@ export function BlogActionForm(props: { notes: BlogNote[]; slug: string }) {
             </ul>
           ) : (
             <p className="m-0 text-sm leading-6 text-muted-foreground">
-              No notes yet. Submit the form to persist one in the server process.
+              No notes yet. Submit the form to save one in the database.
             </p>
           )}
         </div>

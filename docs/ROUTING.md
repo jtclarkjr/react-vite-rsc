@@ -1,13 +1,13 @@
 # Routing
 
 This project uses a custom file-based router built directly on top of the current React Server
-Components setup, with Nitro handling the outer HTTP runtime. It does not use React Router, TanStack
+Components setup, with Void handling the outer HTTP runtime. It does not use React Router, TanStack
 Router, or Next.js routing primitives.
 
-The routing system has three parts:
+The routing system has four parts:
 
-- Nitro route handlers and a Nitro renderer that own the external HTTP contract
-- Nitro middleware and plugins that can run before or around route handling
+- Void route handlers and middleware that own the external HTTP contract
+- Separate Cloudflare child environments for RSC and HTML rendering
 - A server-side file matcher that resolves `src/routes/**/page.tsx` to URLs
 - A small client navigation layer that updates the browser URL and triggers a new RSC fetch
 
@@ -15,16 +15,16 @@ The routing system has three parts:
 
 The key pieces are:
 
-- `server/renderer.ts`
-  - Handles document requests through Nitro
-- `server/routes/_rsc`
-  - Serves internal RSC payload requests
-- `server/routes/_actions`
-  - Serves hydrated server action requests
-- `server/middleware`
-  - Runs Nitro middleware before routes and page rendering
-- `server/plugins`
-  - Runs Nitro app hooks such as request and response logging
+- `middleware/01.logger.ts`
+  - Logs page and API requests around downstream handling
+- `middleware/02.page-auth.ts`
+  - Protects document, RSC, and server action requests targeting `/dashboard`
+- `middleware/03.rsc.ts`
+  - Handles document, internal RSC, and hydrated server action requests before asset fallback
+- `server/lib/void-rsc.ts`
+  - Connects Void requests to the RSC and HTML rendering environments
+- `routes/`
+  - Defines Void API and authentication handlers
 - `src/router.tsx`
   - Builds the route table from the filesystem with `import.meta.glob()`
   - Matches static and dynamic segments
@@ -32,7 +32,7 @@ The key pieces are:
   - Calls `resolveRoute(url)` and renders the matched page
   - Falls back to the built-in 404 page when nothing matches
 - `src/framework/entry.rsc.tsx`
-  - Normalizes Nitro requests and renders the app for both SSR and RSC responses
+  - Normalizes requests and renders the app for both SSR and RSC responses
 - `src/framework/entry.browser.tsx`
   - Hydrates the app in the browser
   - Re-fetches the RSC payload after navigation and refreshes
@@ -120,9 +120,9 @@ export default function BlogPage(props: PageProps) {
 ### Initial Page Load
 
 1. The browser requests a normal URL like `/about`
-2. Nitro runs matching middleware in `server/middleware/**`
-3. Nitro forwards the request to `server/renderer.ts`
-4. The SSR Vite service delegates to the RSC Vite service
+2. Void runs the logger and authorization middleware in `middleware/`
+3. The RSC middleware forwards document requests to the SSR entry
+4. The SSR Cloudflare child environment delegates to the RSC child environment
 5. `src/framework/entry.rsc.tsx` normalizes the request and starts the render
 6. `src/root.tsx` calls `resolveRoute(url)`
 7. `src/router.tsx` matches the URL against `src/routes/**/page.tsx`
@@ -150,7 +150,7 @@ That means these all work as navigation:
 ### Refreshing the Current Route
 
 `router.refresh()` does not reload the whole document. It re-fetches the current route through
-Nitro's internal `/_rsc/**` endpoint and re-renders the page with the current URL.
+Void's internal `/_rsc/**` endpoint and re-renders the page with the current URL.
 
 Use it when you want to re-run the current server render after a mutation or any other invalidation.
 
@@ -222,7 +222,7 @@ Notes:
 
 ## Internal Endpoints
 
-Nitro exposes two internal endpoints for the React runtime:
+Void middleware exposes two internal endpoints for the React runtime:
 
 - `GET /_rsc/**`
   - Used for client-side navigation and refresh
@@ -232,15 +232,20 @@ Nitro exposes two internal endpoints for the React runtime:
 Progressive enhancement form submissions still post to the page URL itself, so the server can
 re-render the document response without JavaScript.
 
-## Nitro Middleware and Plugins
+These requests run before Void's static asset fallback, so dotted dynamic slugs and action IDs
+containing file extensions still reach the renderer. Internal responses have
+`Cache-Control: no-store`. If authorization redirects an RSC navigation to login, the client follows
+the redirect as a document navigation before trying to decode Flight.
 
-Nitro can do work before page rendering without changing the React route-module contract.
+## Void Middleware and Handlers
+
+Void runs middleware before page rendering without changing the React route-module contract.
 
 ### Request Logging Demo
 
-This repo includes a Nitro request logger in `server/plugins/request-logger.ts`.
+This repo includes a request logger in `middleware/01.logger.ts`.
 
-It uses Nitro's request and response hooks to print one log line for:
+It wraps downstream handling to print one log line for:
 
 - page requests such as `/`, `/about`, and `/dashboard`
 - API requests such as `/api/demo/request`
@@ -250,31 +255,31 @@ the logs stay focused on user-facing page and API traffic.
 
 ### Auth Before Rendering a Page Route
 
-This repo also includes a Nitro auth gate in `server/middleware/01.page-auth.ts`.
+This repo also includes an auth gate in `middleware/02.page-auth.ts`.
 
 The middleware:
 
-- checks whether the request pathname matches `/dashboard`
+- normalizes document, RSC, and server action targets before checking `/dashboard`
 - reads the demo auth cookie
 - redirects to `/login?redirect=...` before the page route renders when the cookie is missing
 
-Because this happens in Nitro middleware, the protected page route is blocked before the React
+Because this happens in Void middleware, the protected page route is blocked before the React
 server component tree renders.
 
 Related demo files:
 
 - `src/routes/login/page.tsx`
-  - Simple page that posts to the Nitro login handler
+  - Simple page that posts to the Void login handler
 - `src/routes/dashboard/page.tsx`
   - Protected page route
-- `server/routes/auth/login.post.ts`
+- `routes/auth/login.ts`
   - Sets the demo auth cookie and redirects back
-- `server/routes/auth/logout.post.ts`
+- `routes/auth/logout.ts`
   - Clears the demo auth cookie
 
 ### API Demo Route
 
-The repo includes `server/routes/api/demo/request.get.ts` as a small Nitro API route. It returns a
+The repo includes `routes/api/demo/request.ts` as a small Void API route. It returns a
 JSON payload with the request path, method, timestamp, and whether the demo auth cookie is present.
 
 That gives you a visible API target to pair with the request logger.

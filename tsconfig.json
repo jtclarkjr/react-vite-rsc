@@ -1,4 +1,5 @@
 {
+  "extends": "./.void/tsconfig.json",
   "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
   "compilerOptions": {
     "erasableSyntaxOnly": true,
@@ -15,9 +16,13 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "paths": {
       "@/*": ["./src/*"],
-      "@server/*": ["./server/*"]
+      "@server/*": ["./server/*"],
+      "@schema": ["./db/schema.ts"],
+      "@schema/*": ["./db/schema/*"],
+      "void/db": ["./.void/db.d.ts"],
+      "void/routes": ["./.void/routes.d.ts"]
     },
-    "types": ["vite/client", "@vitejs/plugin-rsc/types"],
+    "types": ["vite/client", "@vitejs/plugin-rsc/types", "void/env"],
     "jsx": "react-jsx"
   }
 }

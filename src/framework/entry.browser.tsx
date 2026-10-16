@@ -15,7 +15,11 @@ import {
   subscribeToLocationChanges,
   subscribeToRefreshRequests
 } from '@/framework/navigation/store.ts'
-import { createRscRenderRequest, createServerActionRequest } from '@/framework/request'
+import {
+  createRscRenderRequest,
+  createServerActionRequest,
+  fetchRenderResponse
+} from '@/framework/request'
 
 async function main() {
   // stash `setPayload` function to trigger re-rendering
@@ -58,7 +62,9 @@ async function main() {
   // re-fetch RSC and trigger re-rendering
   async function fetchRscPayload() {
     const renderRequest = createRscRenderRequest(window.location.href)
-    const payload = await createFromFetch<RscPayload>(fetch(renderRequest))
+    const response = await fetchRenderResponse(renderRequest)
+    if (!response) return
+    const payload = await createFromFetch<RscPayload>(Promise.resolve(response))
     setPayload(payload)
   }
 
@@ -70,7 +76,10 @@ async function main() {
       id,
       body: await encodeReply(args, { temporaryReferences })
     })
-    const payload = await createFromFetch<RscPayload>(fetch(renderRequest), {
+    const response = await fetchRenderResponse(renderRequest)
+    // Keep the action pending while the redirected document replaces this page.
+    if (!response) return new Promise<never>(() => {})
+    const payload = await createFromFetch<RscPayload>(Promise.resolve(response), {
       temporaryReferences
     })
     setPayload(payload)

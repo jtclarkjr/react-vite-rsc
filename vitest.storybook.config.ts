@@ -2,7 +2,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { storybookTest } from '@storybook/addon-vitest/vitest-plugin'
-import { playwright } from '@vitest/browser-playwright'
+import { playwright } from 'vite-plus/test/browser-playwright'
 import { defineConfig } from 'vite-plus/test/config'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
@@ -11,6 +11,11 @@ export default defineConfig({
   test: {
     projects: [
       {
+        resolve: {
+          alias: {
+            '@': path.resolve(dirname, './src')
+          }
+        },
         plugins: [
           storybookTest({
             configDir: path.join(dirname, '.storybook'),
@@ -22,7 +27,7 @@ export default defineConfig({
           browser: {
             enabled: true,
             headless: true,
-            provider: playwright({}) as never,
+            provider: playwright(),
             instances: [{ browser: 'chromium' }]
           },
           includeSource: [],
