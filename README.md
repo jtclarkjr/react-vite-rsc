@@ -13,6 +13,46 @@ This setup combines:
 
 [![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc/examples/starter)
 
+## Void + Cloudflare Branch
+
+The `main` branch uses Nitro with a Node-first runtime. For Cloudflare Workers, use the
+[`void` branch](https://github.com/jtclarkjr/react-vite-rsc/tree/void), which replaces Nitro with
+[Void](https://void.cloud) while retaining RSC, SSR, client navigation, and server actions. It also
+includes typed API routes, a D1 posts demo, and persistent blog notes in D1.
+
+With Vite+ installed, switch to that branch and start locally:
+
+```sh
+git switch void
+vp install
+cp void.config.example.ts void.config.ts
+vp exec void prepare
+vp dev
+```
+
+Copy the config example only on a fresh checkout; preserve an existing local config. Explicit type
+generation is required because install lifecycle scripts are disabled. Dev applies pending local
+D1 migrations automatically. To test the built Worker locally:
+
+```sh
+vp build
+vp exec void db migrate
+vp preview
+```
+
+Deploy to your own Cloudflare account:
+
+```sh
+export CLOUDFLARE_ACCOUNT_ID="your-cloudflare-account-id"
+vp exec void deploy --platform cloudflare
+```
+
+Void prompts for Cloudflare sign-in when needed and provisions the Worker and D1 resources. Keep
+your personal `void.config.ts` and `void.lock.json` ignored, and back up the lock to preserve resource
+IDs between deployments. See the
+[`void` branch README](https://github.com/jtclarkjr/react-vite-rsc/blob/void/README.md) for Docker,
+validation, and GitHub Actions setup, including its required Cloudflare and private-lock secrets.
+
 ## Commands
 
 Install `vp` from the [Vite+ site](https://viteplus.dev/) before running project commands:
