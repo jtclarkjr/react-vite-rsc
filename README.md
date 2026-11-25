@@ -9,19 +9,19 @@ cookie, request logging, a typed posts API, and persistent notes on dynamic blog
 
 ## Setup and commands
 
-Install `vp` from the [Vite+ site](https://viteplus.dev/) before running host commands:
+Use Node.js `^24.22.0` or `>=26.12.0` and install `vp` from the [Vite+ site](https://viteplus.dev/)
+before running host commands:
 
 ```sh
 curl -fsSL https://vite.plus | bash
 vp install
 cp void.config.example.ts void.config.ts
-vp exec void prepare
+vp run typegen
 vp dev
 ```
 
-Copy the public config example once on a fresh checkout; keep an existing local config when
-updating. Run `vp exec void prepare` after a fresh checkout or dependency update. `bunfig.toml` disables
-install lifecycle scripts, so installation alone does not generate Void's `.void/` types.
+Copy the public config example once on a fresh checkout. Run `vp run typegen` after a fresh checkout
+or dependency update to generate Void's API types and the RSC page route types in `.void/`.
 Development applies pending local D1 migrations automatically.
 
 ```sh
@@ -84,9 +84,9 @@ The rendering environments remain separate:
 - `src/main.ssr.ts` and `src/main.client.ts` connect those entries to Void.
 
 `vite.config.ts` registers `rsc` and `ssr` as children of Void's `void_worker` Cloudflare environment.
-The committed Bun patch for **Void 1.1.11** exposes `workerChildEnvironments` and preserves those
-environments during configuration. Review the patch before upgrading Void; `vp install` applies it
-from `patches/`.
+The Bun patch for **Void 1.11.0** exposes `workerChildEnvironments` and preserves those environments
+during configuration. `vp install` applies the patch for the version in `bun.lock`. Rebase the patch
+when updating the locked Void version.
 
 See [`docs/ROUTING.md`](./docs/ROUTING.md) for route modules, middleware, and navigation hooks, and
 [`@vitejs/plugin-rsc`](https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-rsc)
@@ -111,7 +111,7 @@ production. Existing posts and notes remain intact when applying additive migrat
 ## Build and deployment
 
 Build output lives in `dist/client` for browser assets and `dist/ssr` for the Worker, including the
-RSC and SSR bundles in `dist/ssr/rsc` and `dist/ssr/render`. Preview with `vp preview`.
+RSC and SSR bundles in `dist/ssr/rsc` and `dist/ssr/ssr`. Preview with `vp preview`.
 
 Cloudflare deployment reads your private account and Worker settings from the ignored
 `void.config.ts`. The ignored `void.lock.json` preserves resource identities for later deployments

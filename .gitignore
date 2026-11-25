@@ -1,6 +1,7 @@
 node_modules
 dist
 .output
+.cloudflare/
 storybook-static
 playwright-report
 test-results

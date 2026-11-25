@@ -1,3 +1,4 @@
+import type { RouteUrl } from 'void/routes'
 import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
 
@@ -23,7 +24,7 @@ export default function DashboardPage() {
             to see the request logger classify page and API requests.
           </p>
 
-          <form action="/auth/logout" method="post">
+          <form action={'/auth/logout' satisfies RouteUrl} method="post">
             <Button type="submit" variant="outline">
               Clear demo auth cookie
             </Button>

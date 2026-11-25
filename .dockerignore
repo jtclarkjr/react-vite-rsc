@@ -6,6 +6,7 @@
 .bun
 .env*
 .void
+.cloudflare/
 .void-wrangler.jsonc
 .wrangler
 void.config.ts

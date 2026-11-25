@@ -10,6 +10,7 @@ tar -C /source \
   --exclude='./.aws' \
   --exclude='./node_modules' \
   --exclude='./.void' \
+  --exclude='./.cloudflare' \
   --exclude='./.wrangler' \
   --exclude='./.void-wrangler.jsonc' \
   --exclude='./dist' \

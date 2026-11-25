@@ -15,12 +15,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24.22.x'
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
       - name: Configure Void
         run: cp void.config.example.ts void.config.ts
       - name: Generate Void types
-        run: bunx vp exec void prepare
+        run: bunx vp run typegen
       - name: Check
         run: bunx vp check
       - name: Test

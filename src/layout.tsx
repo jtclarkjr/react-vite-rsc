@@ -1,8 +1,10 @@
 import type { ReactNode } from 'react'
+import type { RouteUrl } from 'void/routes'
+import { Link } from '@/framework/navigation/link.tsx'
 import { cn } from '@/lib/utils.ts'
 
 type NavItem = {
-  href: string
+  href: RouteUrl
   label: string
 }
 
@@ -17,12 +19,12 @@ export function Layout(props: { children: ReactNode; pathname: string }) {
     <div className="min-h-screen">
       <header className="border-b border-border/70 bg-background/85 backdrop-blur">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
-          <a href="/" className="text-sm font-bold tracking-[0.02em] text-foreground">
+          <Link href="/" className="text-sm font-bold tracking-[0.02em] text-foreground">
             React, RSC, and Vite+
-          </a>
+          </Link>
           <nav className="flex items-center gap-3">
             {navItems.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 className={cn(
@@ -31,7 +33,7 @@ export function Layout(props: { children: ReactNode; pathname: string }) {
                 )}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </nav>
         </div>

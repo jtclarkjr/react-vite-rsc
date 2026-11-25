@@ -6,6 +6,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite-plus'
 import { voidPlugin } from 'void'
+import { rscRouteTypesPlugin } from './scripts/generate-rsc-route-types.ts'
 
 const dirname = path.dirname(fileURLToPath(import.meta.url))
 const isVitest = process.env.VITEST === 'true'
@@ -46,6 +47,7 @@ export default defineConfig(({ command }) => ({
     ...(!isVitest
       ? [
           voidPlugin({ workerChildEnvironments: ['rsc', 'ssr'] }),
+          rscRouteTypesPlugin(),
           {
             name: 'clean-void-worker-output',
             buildApp: {
@@ -105,7 +107,7 @@ export default defineConfig(({ command }) => ({
         'process.env.NODE_ENV': JSON.stringify(command === 'build' ? 'production' : 'development')
       },
       build: {
-        outDir: 'dist/ssr/render',
+        outDir: 'dist/ssr/ssr',
         minify: true,
         rolldownOptions: {
           input: {

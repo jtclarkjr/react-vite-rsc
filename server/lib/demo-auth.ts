@@ -1,8 +1,9 @@
+import type { RouteUrl } from 'void/routes'
 import { parseRenderRequest } from '@/framework/request.tsx'
 
 export const DEMO_AUTH_COOKIE_NAME = 'demo-auth'
-export const LOGIN_ROUTE_PATH = '/login'
-export const PROTECTED_DASHBOARD_PATH = '/dashboard'
+export const LOGIN_ROUTE_PATH = '/login' satisfies RouteUrl
+export const PROTECTED_DASHBOARD_PATH = '/dashboard' satisfies RouteUrl
 
 export function hasDemoAuthCookie(value: string | undefined) {
   return value === '1'
@@ -56,7 +57,7 @@ export function createDemoAuthCookieHeader() {
 export function createExpiredDemoAuthCookieHeader() {
   return `${DEMO_AUTH_COOKIE_NAME}=; Path=/; HttpOnly; Max-Age=0; SameSite=Lax`
 }
-export function getPageAuthRedirect(request: Request) {
+export function getPageAuthRedirect(request: Request): RouteUrl | undefined {
   const { url } = parseRenderRequest(request)
   if (
     !isProtectedPagePath(url.pathname) ||

@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useSyncExternalStore } from 'react'
+import type { RouteUrl } from 'void/routes'
 import {
   back,
   forward,
@@ -24,12 +25,14 @@ type ReadonlySearchParamsMethods = Pick<
   | typeof Symbol.iterator
 >
 
+type NavigationHref = RouteUrl | `${'?' | '#'}${string}`
+
 export type AppRouter = {
   back: () => void
   forward: () => void
-  push: (href: string) => void
+  push: (href: NavigationHref) => void
   refresh: () => void
-  replace: (href: string) => void
+  replace: (href: NavigationHref) => void
 }
 
 export type ReadonlySearchParams = ReadonlySearchParamsMethods

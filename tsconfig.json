@@ -1,6 +1,6 @@
 {
   "extends": "./.void/tsconfig.json",
-  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
+  "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts", ".void/rsc-routes.d.ts"],
   "compilerOptions": {
     "erasableSyntaxOnly": true,
     "allowImportingTsExtensions": true,

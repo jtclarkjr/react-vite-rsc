@@ -1,5 +1,7 @@
+import { routeUrl } from 'void/routes'
 import { StarterHomeClient } from '@/components/starter-home-client.tsx'
 import { createStarterAppState } from '@/features/starter/state.ts'
+import { Link } from '@/framework/navigation/link.tsx'
 
 export default function HomePage() {
   const initialState = createStarterAppState(new Date().toISOString())
@@ -17,20 +19,23 @@ export default function HomePage() {
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
           Try a dynamic route like{' '}
-          <a href="/blog/example-slug" className="text-foreground underline">
+          <Link
+            href={routeUrl('/blog/[slug]', { params: { slug: 'example-slug' } })}
+            className="text-foreground underline"
+          >
             /blog/example-slug
-          </a>{' '}
+          </Link>{' '}
           to see route params resolved from the filesystem and a server action example.
         </p>
         <p className="m-0 max-w-3xl text-base leading-7 text-muted-foreground">
           Void also powers a protected page demo at{' '}
-          <a href="/dashboard" className="text-foreground underline">
+          <Link href="/dashboard" className="text-foreground underline">
             /dashboard
-          </a>{' '}
+          </Link>{' '}
           and an API demo at{' '}
-          <a href="/api/demo/request" className="text-foreground underline">
+          <Link href="/api/demo/request" className="text-foreground underline">
             /api/demo/request
-          </a>
+          </Link>
           , both of which are logged by request middleware.
         </p>
       </div>

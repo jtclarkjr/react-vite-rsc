@@ -29,7 +29,7 @@ RUN vp install --frozen-lockfile --ignore-scripts
 COPY . .
 COPY void.config.example.ts ./void.config.ts
 
-RUN vp exec void prepare && vp build
+RUN vp run typegen && vp build
 
 FROM build AS preview
 

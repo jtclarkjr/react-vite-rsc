@@ -335,15 +335,18 @@ Do not mutate it directly. Update the URL with `router.push()` or `router.replac
 
 ## Navigation Patterns
 
-### Use Normal Links When You Can
+### Use Typed Links
 
-For most navigation, use plain anchors:
+Use `Link` for app navigation. It renders an anchor and uses the existing client navigation.
 
 ```tsx
-<a href="/about">About</a>
+import { Link } from '@/framework/navigation/link.tsx'
+
+<Link href="/about">About</Link>
 ```
 
-This preserves normal browser behavior and still uses client-side navigation for same-origin links.
+Vite regenerates the checked route types when page files are added or removed. Run `vp run typegen`
+when checking types without the dev server.
 
 ### Use `useRouter()` for Non-Link Interactions
 
@@ -353,12 +356,13 @@ Use the router hook for buttons, menus, keyboard shortcuts, or other imperative 
 'use client'
 
 import { useRouter } from '@/framework/navigation'
+import { routeUrl } from 'void/routes'
 
 export function OpenPostButton(props: { slug: string }) {
   const router = useRouter()
 
   return (
-    <button type="button" onClick={() => router.push(`/blog/${props.slug}`)}>
+    <button type="button" onClick={() => router.push(routeUrl('/blog/[slug]', { params: { slug: props.slug } }))}>
       Open post
     </button>
   )
@@ -395,7 +399,7 @@ router by default.
 
 - Add a new route by creating `src/routes/.../page.tsx`
 - Read route params and query strings in server pages through `PageProps`
-- Use plain `<a href>` for normal navigation
+- Use `Link` for typed app navigation
 - Use `useRouter()` only in client components for imperative navigation
 - Use `usePathname()` and `useSearchParams()` for client-side reads
 - Use `router.refresh()` to re-run the current RSC render without a full page reload

@@ -73,7 +73,7 @@ services:
     command:
       - /bin/bash
       - -c
-      - vp install --frozen-lockfile --ignore-scripts && vp exec void prepare
+      - vp install --frozen-lockfile --ignore-scripts && vp run typegen
 
   dev:
     <<: *dev-sandbox

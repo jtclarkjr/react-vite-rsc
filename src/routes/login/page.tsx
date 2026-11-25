@@ -1,10 +1,11 @@
+import type { RouteUrl } from 'void/routes'
 import { Button } from '@/components/ui/button.tsx'
 import { Card, CardContent } from '@/components/ui/card.tsx'
 import { Input } from '@/components/ui/input.tsx'
 import type { PageProps } from '@/router.tsx'
 
 export default function LoginPage(props: PageProps) {
-  const redirectTarget = props.url.searchParams.get('redirect') ?? '/dashboard'
+  const redirectTarget = props.url.searchParams.get('redirect') ?? ('/dashboard' satisfies RouteUrl)
 
   return (
     <section className="grid gap-6">
@@ -21,7 +22,7 @@ export default function LoginPage(props: PageProps) {
 
       <Card>
         <CardContent className="grid gap-4">
-          <form action="/auth/login" method="post" className="grid gap-3">
+          <form action={'/auth/login' satisfies RouteUrl} method="post" className="grid gap-3">
             <input type="hidden" name="redirect" value={redirectTarget} />
             <Input
               aria-label="Demo username"

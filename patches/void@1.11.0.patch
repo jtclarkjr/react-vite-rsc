@@ -1,0 +1,31 @@
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -61,5 +61,6 @@
+ /** Returns the Vite plugins that build and serve a Void app for its configured target. */
+ export declare function voidPlugin(options?: {
+   persistTo?: string;
+   auxiliaryWorkers?: Array<AuxiliaryWorkerConfig>;
++  workerChildEnvironments?: string[];
+ }): Array<Plugin>;
+diff --git a/dist/index.mjs b/dist/index.mjs
+--- a/dist/index.mjs
++++ b/dist/index.mjs
+@@ -6042,7 +6042,7 @@ function voidPlugin(options) {
+ 	return [
+ 		createCloudflareBuiltinsExternalPlugin(),
+ 		createDefaultWorkerEnvironmentPlugin(),
+-		createWorkerEnvironmentSanitizerPlugin([DEFAULT_WORKER_ENVIRONMENT_NAME]),
++		createWorkerEnvironmentSanitizerPlugin([DEFAULT_WORKER_ENVIRONMENT_NAME, ...(options?.workerChildEnvironments ?? [])]),
+ 		createWranglerCompatPersistPlugin(root, config),
+ 		devTriggerSecretGuardPlugin(),
+ 		restartPlugin(),
+@@ -6075,7 +6075,7 @@ function voidPlugin(options) {
+ 			...inspectorPortOption,
+ 			persistState: { path: localD1.persistRoot },
+ 			auxiliaryWorkers: options?.auxiliaryWorkers,
+-			viteEnvironment: { name: DEFAULT_WORKER_ENVIRONMENT_NAME },
++			viteEnvironment: { name: DEFAULT_WORKER_ENVIRONMENT_NAME, childEnvironments: options?.workerChildEnvironments },
+ 			config: mergeBindings,
+ 			finalizeAssets(clientDir, environment) {
+ 				(environment?.config.plugins.find((plugin) => plugin.name === routes.name))?.api.finalizeCloudflareAssets(clientDir, environment.config.build.assetsDir);
